@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "galaxybackpacks:iron_backpack",
+    "galaxybackpacks:gold_backpack",
+    "galaxybackpacks:netherite_backpack"
+  ]
+}

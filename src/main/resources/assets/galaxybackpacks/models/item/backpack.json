@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "galaxybackpacks:item/leather_backpack/0",
+    "layer1": "galaxybackpacks:item/leather_backpack/1",
+    "layer2": "galaxybackpacks:item/leather_backpack/2"
+  }
+}

@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "galaxybackpacks",
+	"version": "${version}",
+	"name": "Galaxy's Backpacks",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"BeanGalaxy"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/galaxybackpacks/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "com.beansgalaxy.galaxybackpacks.Main"
+		],
+		"client": [
+			"com.beansgalaxy.galaxybackpacks.Client"
+		],
+		"fabric-datagen": [
+          "com.beansgalaxy.galaxybackpacks.DataGenerator"
+		]
+	},
+	"mixins": [
+		"galaxybackpacks.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.23",
+		"minecraft": "~1.20.2",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

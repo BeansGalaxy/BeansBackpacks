@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.beansgalaxy.galaxybackpacks.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "PlayerEntityMixin",
+    "PlayerInventoryMixin",
+    "PlayerScreenHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "PlayerRendererMixin"
+  ]
+}
