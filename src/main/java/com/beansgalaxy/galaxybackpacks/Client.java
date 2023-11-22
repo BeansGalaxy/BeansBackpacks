@@ -3,6 +3,7 @@ package com.beansgalaxy.galaxybackpacks;
 import com.beansgalaxy.galaxybackpacks.client.entity.BackpackEntityModel;
 import com.beansgalaxy.galaxybackpacks.client.player.BackpackPlayerModel;
 import com.beansgalaxy.galaxybackpacks.client.entity.BackpackEntityRenderer;
+import com.beansgalaxy.galaxybackpacks.client.player.PlayerPotModel;
 import com.beansgalaxy.galaxybackpacks.networking.NetworkPackages;
 import com.beansgalaxy.galaxybackpacks.register.ItemRegistry;
 import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
@@ -26,7 +27,8 @@ public class Client implements ClientModInitializer {
                 (layer != 1 ? ((BackpackItem) stack.getItem()).getColor(stack) : 16777215), ItemRegistry.LEATHER_BACKPACK.asItem());
 
         EntityModelLayerRegistry.registerModelLayer(BACKPACK_ENTITY_MODEL, BackpackEntityModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(BACKPACK_PLAYER_MODEL, BackpackPlayerModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(PLAYER_BACKPACK_MODEL, BackpackPlayerModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(PLAYER_POT_MODEL, PlayerPotModel::getTexturedModelData);
         EntityRendererRegistry.register(Main.ENTITY_BACKPACK, BackpackEntityRenderer::new);
 
         HandledScreens.register(ScreenHandlersRegistry.BACKPACK_SCREEN_HANDLER, BackpackScreen::new);
@@ -35,7 +37,10 @@ public class Client implements ClientModInitializer {
     public static final EntityModelLayer BACKPACK_ENTITY_MODEL =
             new EntityModelLayer(new Identifier(Main.MODID, "backpack_entity"), "main");
 
-    public static final EntityModelLayer BACKPACK_PLAYER_MODEL =
+    public static final EntityModelLayer PLAYER_BACKPACK_MODEL =
             new EntityModelLayer(new Identifier(Main.MODID, "backpack_player"), "main");
+
+    public static final EntityModelLayer PLAYER_POT_MODEL =
+            new EntityModelLayer(new Identifier(Main.MODID, "pot_player"), "main");
 
 }

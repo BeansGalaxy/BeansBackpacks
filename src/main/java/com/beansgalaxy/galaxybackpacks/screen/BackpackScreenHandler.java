@@ -1,5 +1,6 @@
 package com.beansgalaxy.galaxybackpacks.screen;
 
+import com.beansgalaxy.galaxybackpacks.entity.Backpack;
 import com.beansgalaxy.galaxybackpacks.entity.BackpackEntity;
 import com.beansgalaxy.galaxybackpacks.register.ScreenHandlersRegistry;
 import com.mojang.datafixers.util.Pair;
@@ -19,7 +20,8 @@ public class BackpackScreenHandler extends ScreenHandler {
     private static final Identifier BACKPACK_ATLAS = new Identifier("textures/atlas/blocks.png");
     private static final Identifier INPUT = new Identifier("sprites/empty_slot_input_large");
     private static int BACKPACK_SLOT_INDEX;
-    public final BackpackEntity entity;
+    public final Backpack entity;
+    protected final Backpack mirror;
     public int invOffset = 108;
 
     public BackpackScreenHandler(int syncId, PlayerInventory inventory, PacketByteBuf buf) {
@@ -28,10 +30,18 @@ public class BackpackScreenHandler extends ScreenHandler {
 
     public BackpackScreenHandler(int syncId, PlayerInventory playerInventory, Entity entity) {
         super(ScreenHandlersRegistry.BACKPACK_SCREEN_HANDLER, syncId);
-        this.entity = (BackpackEntity) entity;
+        if (entity instanceof BackpackEntity bEntity) {
+            this.entity = bEntity;
+            this.mirror = bEntity.createMirror();
+        }
+        else {
+            this.entity = (Backpack) entity;
+            this.mirror = this.entity;
+        }
         createInventorySlots(playerInventory);
         BACKPACK_SLOT_INDEX = slots.size();
         createBackpackSlots(this.entity);
+
         //this.entity.onOpen(playerInventory.player);
     }
 
@@ -128,6 +138,7 @@ public class BackpackScreenHandler extends ScreenHandler {
     }
 
     public void onClosed(PlayerEntity player) {
+        mirror.discard();
         entity.onClose(player);
         super.onClosed(player);
     }

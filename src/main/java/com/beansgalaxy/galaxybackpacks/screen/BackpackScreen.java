@@ -1,6 +1,7 @@
 package com.beansgalaxy.galaxybackpacks.screen;
 
 import com.beansgalaxy.galaxybackpacks.Main;
+import com.beansgalaxy.galaxybackpacks.entity.Backpack;
 import com.beansgalaxy.galaxybackpacks.entity.BackpackEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -18,13 +19,12 @@ import org.joml.Vector3f;
 public class BackpackScreen extends HandledScreen<BackpackScreenHandler> {
     private static final Identifier TEXTURE = new Identifier(Main.MODID, "textures/gui/backpack.png");
     private final BackpackScreenHandler handler;
-    private final BackpackEntity mirror;
+
 
     public BackpackScreen(BackpackScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.handler = handler;
         this.backgroundHeight = 256;
-        this.mirror = this.handler.entity.createMirror();
     }
 
     @Override
@@ -49,10 +49,10 @@ public class BackpackScreen extends HandledScreen<BackpackScreenHandler> {
         RenderSystem.setShaderTexture(0, TEXTURE);
         int j = this.handler.invOffset + y;
         context.drawTexture(TEXTURE, x, j - 123, 0, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
-        drawBackpack(context, width / 2, j, 192, this.mirror, mouseX, mouseY);
+        drawBackpack(context, width / 2, j, 192, this.handler.mirror, mouseX, mouseY);
     }
 
-    private void drawBackpack(DrawContext context, int x, int y, int scale, BackpackEntity entity, int mouseX, int mouseY) {
+    private void drawBackpack(DrawContext context, int x, int y, int scale, Backpack entity, int mouseX, int mouseY) {
         context.getMatrices().push();
         context.enableScissor(x - 80, y - 220, x + 80, y + 36);
         float relX = -((width / 2f) - mouseX);

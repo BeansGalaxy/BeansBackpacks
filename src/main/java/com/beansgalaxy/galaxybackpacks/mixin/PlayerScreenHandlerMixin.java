@@ -1,8 +1,6 @@
 package com.beansgalaxy.galaxybackpacks.mixin;
 
-import com.beansgalaxy.galaxybackpacks.entity.BackpackEntity;
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
-import com.beansgalaxy.galaxybackpacks.entity.PlaySound;
 import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
 import com.beansgalaxy.galaxybackpacks.networking.packages.SlotClickPacket;
 import com.beansgalaxy.galaxybackpacks.networking.packages.SyncBackSlot;
@@ -17,18 +15,15 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.screen.AbstractRecipeScreenHandler;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,6 +36,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PlayerScreenHandler.class)
 public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandler<CraftingInventory> {
     @Shadow @Final public static int OFFHAND_ID;
+    @Shadow @Final public static int INVENTORY_END;
+    @Shadow @Final public static int INVENTORY_START;
     @Unique private static final Identifier BACKPACK_ATLAS = new Identifier("textures/atlas/blocks.png");
     @Unique private static final Identifier SLOT = new Identifier("sprites/empty_slot_backpack");
     @Unique private static final Identifier INPUT = new Identifier("sprites/empty_slot_input");
@@ -91,6 +88,10 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
                 ItemStack stack = slots.get(BackpackItem.SLOT_INDEX).getStack();
                 return Kind.fromItem(stack);
             }
+            public void markDirty() {
+                if (player instanceof ServerPlayerEntity serverPlayer)
+                    syncBackpackInventory.S2C(serverPlayer);
+            }
         };
         this.addSlot(new Slot(backpackInventory, 0,59, 45) {
 
@@ -101,7 +102,8 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
 
             @Override
             public boolean isEnabled() {
-                return Kind.isBackpackItem(BackpackItem.getSlot(player).getStack()) && !player.isCreative();
+                ItemStack stack = BackpackItem.getSlot(player).getStack();
+                return Kind.isBackpackItem(stack) && !player.isCreative();
             }
 
             public boolean canInsert(ItemStack stack) {
@@ -121,10 +123,14 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
 
     @Inject(method = "quickMove", at = @At("HEAD"))
     private void quickMove(PlayerEntity player, int slot, CallbackInfoReturnable<ItemStack> cir) {
-        Slot backpackSlot = this.slots.get(BackpackItem.SLOT_INDEX);
+        Slot backSlot = this.slots.get(BackpackItem.SLOT_INDEX);
         ItemStack stack = this.slots.get(slot).getStack();
-        if (Kind.isBackpackItem(stack) && !backpackSlot.hasStack()) {
-            backpackSlot.setStack(stack.copy());
+
+        if (slot == BackpackItem.SLOT_INDEX + 1 && backSlot.hasStack()) {
+        }
+
+        if (Kind.isBackpackItem(stack) && !backSlot.hasStack()) {
+            backSlot.setStack(stack.copy());
             stack.setCount(0);
         }
     }
@@ -136,12 +142,23 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
             super.onSlotClick(slotIndex, button, actionType, player);
             return;
         }
-        if (actionType == SlotActionType.QUICK_MOVE && slotIndex == BackpackItem.SLOT_INDEX + 1) {
+
+        if (actionType == SlotActionType.QUICK_MOVE && slotIndex == BackpackItem.SLOT_INDEX + 1  && BackpackItem.getSlot(player).getStack().isOf(Items.DECORATED_POT)) {
+            BackpackInventory backpackInventory = BackpackItem.getInventory(player);
+            ItemStack stack = backpackInventory.getItemStacks().get(0);
+            this.insertItem(stack, PlayerScreenHandler.INVENTORY_START, PlayerScreenHandler.INVENTORY_END, true);
+            if (stack.isEmpty())
+                backpackInventory.removeStack(0);
+            return;
+        }
+
+        ItemStack backStack = this.slots.get(BackpackItem.SLOT_INDEX).getStack();
+        if (actionType == SlotActionType.QUICK_MOVE && slotIndex == BackpackItem.SLOT_INDEX + 1 && !backStack.isOf(Items.DECORATED_POT)) {
             this.quickMove(player, slotIndex);
             return;
         }
-        Slot backpackSlot = this.slots.get(BackpackItem.SLOT_INDEX);
-        if (actionType == SlotActionType.QUICK_MOVE || !Kind.isBackpackItem(backpackSlot.getStack())) {
+
+        if (actionType == SlotActionType.QUICK_MOVE || !Kind.isBackpackItem(backStack)) {
             super.onSlotClick(slotIndex, button, actionType, player);
             return;
         }

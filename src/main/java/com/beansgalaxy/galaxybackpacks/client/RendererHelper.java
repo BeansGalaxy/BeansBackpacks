@@ -21,7 +21,6 @@ public class RendererHelper {
     public static final Map<Kind, Identifier> Identifiers = ImmutableMap.of(
             Kind.NULL, new Identifier(Main.MODID, "textures/entity/backpack/null.png"),
             Kind.LEATHER, new Identifier(Main.MODID, "textures/entity/backpack/leather.png"),
-            Kind.WOODEN, new Identifier(Main.MODID, "textures/entity/backpack/wooden/wood.png"),
             Kind.IRON, new Identifier(Main.MODID, "textures/entity/backpack/iron.png"),
             Kind.GOLD, new Identifier(Main.MODID, "textures/entity/backpack/gold.png"),
             Kind.NETHERITE, new Identifier(Main.MODID, "textures/entity/backpack/netherite.png"));

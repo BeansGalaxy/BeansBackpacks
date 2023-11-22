@@ -2,6 +2,7 @@ package com.beansgalaxy.galaxybackpacks.networking.packages;
 
 import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
 import com.beansgalaxy.galaxybackpacks.networking.NetworkPackages;
+import com.beansgalaxy.galaxybackpacks.screen.BackpackScreenHandler;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -36,8 +37,11 @@ public class SyncBackSlot {
         buf.writeItemStack(stack);
         List<ServerPlayerEntity> playerList = player.getServerWorld().getPlayers();
         for (ServerPlayerEntity nextPlayer : playerList) {
-            if (player != nextPlayer)
+            if (player != nextPlayer) {
+                if (nextPlayer.currentScreenHandler instanceof BackpackScreenHandler backpackScreenHandler && backpackScreenHandler.entity.itemStacks == BackpackItem.getInventory(player).getItemStacks())
+                    nextPlayer.closeHandledScreen();
                 ServerPlayNetworking.send(nextPlayer, NetworkPackages.SYNC_BACKSLOT_2C, buf);
+            }
         }
     }
 }

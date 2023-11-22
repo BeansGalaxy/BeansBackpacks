@@ -1,9 +1,9 @@
 {
   "item.minecraft.smithing_template.armor_trim.base_slot_description": "Put a piece of armor or backpack here",
   "item.galaxybackpacks.backpack": "Backpack",
-  "item.galaxybackpacks.wood_backpack": "Wooden Backpack",
   "item.galaxybackpacks.iron_backpack": "Iron Backpack",
   "item.galaxybackpacks.gold_backpack": "Gold Backpack",
+  "item.galaxybackpacks.netherite_backpack": "Netherite Backpack",
   "entity.backpack.backpack" : "Backpack",
 
   "key.category.galaxybackpacks": "Galaxy's Backpacks",

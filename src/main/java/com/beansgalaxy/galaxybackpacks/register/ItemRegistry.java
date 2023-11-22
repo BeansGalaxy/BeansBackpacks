@@ -21,18 +21,16 @@ public class ItemRegistry {
     private static void addItemsToTab(FabricItemGroupEntries entries) {
         entries.add(NULL_BACKPACK);
         entries.add(LEATHER_BACKPACK);
-        entries.add(WOODEN_BACKPACK);
         entries.add(IRON_BACKPACK);
         entries.add(GOLD_BACKPACK);
         entries.add(NETHERITE_BACKPACK);
     }
 
-    public static final Item NULL_BACKPACK = registerItem("null_backpack", new BackpackItem(Kind.NULL));
-    public static final Item LEATHER_BACKPACK = registerItem("backpack", new BackpackItem(Kind.LEATHER));
-    public static final Item WOODEN_BACKPACK = registerItem("wood_backpack", new BackpackItem(Kind.WOODEN));
-    public static final Item IRON_BACKPACK = registerItem("iron_backpack", new BackpackItem(Kind.IRON));
-    public static final Item GOLD_BACKPACK = registerItem("gold_backpack", new BackpackItem(Kind.GOLD));
-    public static final Item NETHERITE_BACKPACK = registerItem("netherite_backpack", new BackpackItem(Kind.NETHERITE));
+    public static final Item NULL_BACKPACK = registerItem("null_backpack", new BackpackItem(Kind.NULL, new Item.Settings()));
+    public static final Item LEATHER_BACKPACK = registerItem("backpack", new BackpackItem(Kind.LEATHER, new Item.Settings()));
+    public static final Item IRON_BACKPACK = registerItem("iron_backpack", new BackpackItem(Kind.IRON, new Item.Settings()));
+    public static final Item GOLD_BACKPACK = registerItem("gold_backpack", new BackpackItem(Kind.GOLD, new Item.Settings()));
+    public static final Item NETHERITE_BACKPACK = registerItem("netherite_backpack", new BackpackItem(Kind.NETHERITE, new Item.Settings().fireproof()));
 
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registries.ITEM, new Identifier(Main.MODID, name), item);

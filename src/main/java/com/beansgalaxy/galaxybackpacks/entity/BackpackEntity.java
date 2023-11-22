@@ -3,29 +3,20 @@ package com.beansgalaxy.galaxybackpacks.entity;
 import com.beansgalaxy.galaxybackpacks.Main;
 import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
 import com.beansgalaxy.galaxybackpacks.networking.packages.InteractPacket;
-import com.beansgalaxy.galaxybackpacks.screen.BackpackScreenHandler;
-import com.beansgalaxy.galaxybackpacks.screen.BackpackInventory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -39,26 +30,12 @@ import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 
 import java.util.List;
-import java.util.Objects;
 
-public class BackpackEntity extends Entity implements ExtendedScreenHandlerFactory, BackpackInventory {
-    public static final TrackedData<String> BACKPACK_KIND = DataTracker.registerData(BackpackEntity.class, TrackedDataHandlerRegistry.STRING);
-    public static final TrackedData<Integer> BACKPACK_COLOR = DataTracker.registerData(BackpackEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    public static final TrackedData<String> BACKPACK_MATERIAL = DataTracker.registerData(BackpackEntity.class, TrackedDataHandlerRegistry.STRING);
-    public static final TrackedData<String> BACKPACK_PATTERN = DataTracker.registerData(BackpackEntity.class, TrackedDataHandlerRegistry.STRING);
-    protected static int DEFAULT_BACKPACK_COLOR = 9062433;
-    public int viewers = 0;
-    public boolean isMenu = false;
-    public float headX = 0;
+public class BackpackEntity extends Backpack {
     protected BlockPos pos;
     protected double YPosRaw;
     protected Direction direction;
     private int breakScore;
-
-    public boolean isOpen() {
-        return viewers > 0 || isMenu;
-    }
-
 
     // CREATES ENTITY FROM PLAYER INVENTORY
     public BackpackEntity(World world, BlockPos pos, Direction direction, DefaultedList<ItemStack> stacks) {
@@ -80,10 +57,9 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
 
     }
 
-    public BackpackEntity createMirror() {
-        BackpackEntity entity = new BackpackEntity(this.world(), this.getBlockPos(), Direction.UP);
+    public Backpack createMirror() {
+        Backpack entity = new Backpack(this.world());
         entity.setDisplay(this.getDisplay());
-        entity.isMenu = true;
         entity.headX = this.headX;
         return entity;
     }
@@ -221,7 +197,7 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
 
     // NBT
     protected void writeCustomDataToNbt(NbtCompound tag) {
-        Inventories.writeNbt(tag, this.getItemStacks());
+        this.writeNbt(tag, this.getItemStacks().isEmpty());
         tag.putByte("Facing", (byte)this.direction.getId());
         tag.put("Display", getDisplay());
     }
@@ -233,13 +209,6 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
     }
 
     // LOCAL
-    public void setDisplay(NbtCompound display) {
-        this.dataTracker.set(BACKPACK_KIND, display.getString("Kind"));
-        this.dataTracker.set(BACKPACK_COLOR, display.getInt("Color"));
-        this.dataTracker.set(BACKPACK_MATERIAL, display.getString("Material"));
-        this.dataTracker.set(BACKPACK_PATTERN, display.getString("Pattern"));
-    }
-
     public NbtCompound getDisplay() {
         NbtCompound tag = new NbtCompound();
         tag.putString("Kind", this.dataTracker.get(BACKPACK_KIND));
@@ -247,43 +216,6 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
         tag.putString("Material", this.dataTracker.get(BACKPACK_MATERIAL));
         tag.putString("Pattern", this.dataTracker.get(BACKPACK_PATTERN));
         return tag;
-    }
-
-    public void initDisplay(String kind, ItemStack item) {
-        this.dataTracker.set(BACKPACK_KIND, kind);
-        if (item.getSubNbt("display") != null)
-            this.dataTracker.set(BACKPACK_COLOR, item.getSubNbt("display").getInt("color"));
-        if (item.getSubNbt("Trim") != null) {
-            this.dataTracker.set(BACKPACK_MATERIAL, item.getSubNbt("Trim").getString("material"));
-            this.dataTracker.set(BACKPACK_PATTERN, item.getSubNbt("Trim").getString("pattern"));
-        }
-    }
-
-    protected void initDataTracker() {
-        this.dataTracker.startTracking(BACKPACK_KIND, "");
-        this.dataTracker.startTracking(BACKPACK_COLOR, DEFAULT_BACKPACK_COLOR);
-        this.dataTracker.startTracking(BACKPACK_MATERIAL, "");
-        this.dataTracker.startTracking(BACKPACK_PATTERN, "");
-    }
-
-    /** FOR BACKPACK RENDERER **/
-    public NbtCompound getTrim() {
-        String material = this.dataTracker.get(BACKPACK_MATERIAL);
-        String pattern = this.dataTracker.get(BACKPACK_PATTERN);
-        if (!pattern.isEmpty() && !material.isEmpty()) {
-            NbtCompound tag = new NbtCompound();
-            tag.putString("material", material);
-            tag.putString("pattern", pattern);
-            return tag;
-        } else return null;
-    }
-
-    public int getColor() {
-        return this.dataTracker.get(BACKPACK_COLOR);
-    }
-
-    public Kind getKind() {
-        return Kind.fromString(this.dataTracker.get(BACKPACK_KIND));
     }
 
     /** COLLISIONS AND INTERACTIONS **/
@@ -432,11 +364,6 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
         return ActionResult.SUCCESS;
     }
 
-
-    public void onOpen(PlayerEntity player) {
-        getItemStacks().remove(ItemStack.EMPTY);
-    }
-
     public void onClose(PlayerEntity p) {
         if (viewers > 0) viewers--;
         if (!world().isClient) {
@@ -449,13 +376,6 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
         }
     }
 
-    // COMMUNICATES WITH "BackpackInventory"
-    public DefaultedList<ItemStack> itemStacks = DefaultedList.of();
-
-    public DefaultedList<ItemStack> getItemStacks() {
-        return this.itemStacks;
-    }
-
     public World world() {
         return this.getWorld();
     }
@@ -464,17 +384,6 @@ public class BackpackEntity extends Entity implements ExtendedScreenHandlerFacto
         return new Vec3d(this.pos.getX(), this.YPosRaw, this.pos.getZ());
     }
 
-    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
-        buf.writeInt(this.getId());
-    }
-
-    public ScreenHandler createMenu(int id, PlayerInventory inventory, PlayerEntity player) {
-        if (player.isSpectator()) {
-            return null;
-        } else {
-            return new BackpackScreenHandler(id, player.getInventory(), this);
-        }
-    }
 
     public boolean canPlayerUse(PlayerEntity player) {
         return !this.isRemoved() && this.position().isInRange(player.getPos(), 8.0D);

@@ -20,7 +20,7 @@ public class UseBlockEvent implements UseBlockCallback {
     public ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
         if (player.isSpectator())
             return ActionResult.PASS;
-        if (MinecraftClient.getInstance().options.sprintKey.isPressed()) {
+        if (MinecraftClient.getInstance().options.sprintKey.isPressed() && player.getWorld().isClient) {
             ItemStack backpackStack = BackpackItem.getSlot(player).getStack();
             if (Kind.isBackpackItem(backpackStack)) {
                 PlacePacket.C2S(player, world, hitResult);

@@ -4,7 +4,6 @@ import com.beansgalaxy.galaxybackpacks.Client;
 import com.beansgalaxy.galaxybackpacks.client.TrimHelper;
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
 import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
-import com.google.common.collect.ImmutableList;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.OverlayTexture;
@@ -21,17 +20,12 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.RotationAxis;
 
 import java.awt.*;
-import java.util.List;
 
 import static com.beansgalaxy.galaxybackpacks.client.RendererHelper.*;
 
@@ -44,7 +38,7 @@ public class BackpackFeatureRenderer<T extends LivingEntity, M extends EntityMod
 
     public BackpackFeatureRenderer(FeatureRendererContext<T, M> context, EntityModelLoader loader, BakedModelManager modelManager) {
         super(context);
-        this.model = new BackpackPlayerModel<>(loader.getModelPart(Client.BACKPACK_PLAYER_MODEL));
+        this.model = new BackpackPlayerModel<>(loader.getModelPart(Client.PLAYER_BACKPACK_MODEL));
         this.trimAtlas = modelManager.getAtlas(TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
     }
 
@@ -55,7 +49,7 @@ public class BackpackFeatureRenderer<T extends LivingEntity, M extends EntityMod
             backpackStack = player.playerScreenHandler.slots.get(BackpackItem.SLOT_INDEX).getStack();
         else
             backpackStack = ItemStack.EMPTY; //player.playerScreenHandler.slots.get(BackpackItem.SLOT_INDEX).getStack()
-        if (!Kind.isBackpackItem(backpackStack))
+        if (!Kind.isBackpackItem(backpackStack) || backpackStack.isOf(Items.DECORATED_POT))
             return;
         pose.push();
 
@@ -82,7 +76,6 @@ public class BackpackFeatureRenderer<T extends LivingEntity, M extends EntityMod
 
     // COULDN'T ATTACH BACKPACK DIRECTLY TO TORSO THUS THIS MATCHES ITS MOVEMENTS WHEN CROUCHING
     public void sneaking(Entity entity, MatrixStack pose) {
-
         float scale = sneakInter / 3f;
         pose.translate(0, (1 / 16f) * scale, (1 / 32f) * scale);
         if (entity.isSneaking())

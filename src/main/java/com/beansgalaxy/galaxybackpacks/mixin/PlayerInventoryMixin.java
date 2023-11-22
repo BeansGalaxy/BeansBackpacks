@@ -54,7 +54,8 @@ public abstract class PlayerInventoryMixin implements Inventory {
             backItem.writeNbt(compoundTag);
             if (Kind.isBackpackItem(backItem)) {
                 NbtCompound backTag1 = new NbtCompound();
-                Inventories.writeNbt(backTag1, BackpackItem.getInventory(player).getItemStacks());
+                BackpackInventory backpackInventory = BackpackItem.getInventory(player);
+                backpackInventory.writeNbt(backTag1, backpackInventory.isEmpty());
                 compoundTag.put("Contents", backTag1);
             }
             tag.add(compoundTag);

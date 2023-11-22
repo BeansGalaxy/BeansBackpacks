@@ -2,6 +2,7 @@ package com.beansgalaxy.galaxybackpacks.client.entity;
 
 import com.beansgalaxy.galaxybackpacks.Client;
 import com.beansgalaxy.galaxybackpacks.client.TrimHelper;
+import com.beansgalaxy.galaxybackpacks.entity.Backpack;
 import com.beansgalaxy.galaxybackpacks.entity.BackpackEntity;
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
 import net.minecraft.client.MinecraftClient;
@@ -35,9 +36,9 @@ public class BackpackEntityRenderer<T extends Entity> extends EntityRenderer<T> 
     public void render(T entity, float yaw, float tickDelta, MatrixStack pose, VertexConsumerProvider mbs, int light) {
         super.render(entity, yaw, tickDelta, pose, mbs, light);
         pose.push();
-        BackpackEntity bEntity = (BackpackEntity) entity;
+        Backpack bEntity = (Backpack) entity;
         onOpen(bEntity);
-        if (!bEntity.isMenu)
+        if (!bEntity.isMirror())
             renderHitbox(pose, mbs.getBuffer(RenderLayer.getLines()), entity, yaw, light);
         pose.translate(0, -21 / 16f, 0);
         this.model.setAngles(entity, 0F, 0F, 0F, 50F, 0F);
@@ -73,7 +74,7 @@ public class BackpackEntityRenderer<T extends Entity> extends EntityRenderer<T> 
         } else pose.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(yaw));
     }
 
-    private void renderOverlays(MatrixStack pose, int light, VertexConsumerProvider mbs, Color tint, BackpackEntity bEntity, Kind b$kind) {
+    private void renderOverlays(MatrixStack pose, int light, VertexConsumerProvider mbs, Color tint, Backpack bEntity, Kind b$kind) {
         NbtCompound trim = bEntity.getTrim();
         if (b$kind.isTrimmable() && trim != null)
             TrimHelper.getBackpackTrim(bEntity.getEntityWorld().getRegistryManager(), trim).ifPresent((trim1) ->
@@ -86,7 +87,7 @@ public class BackpackEntityRenderer<T extends Entity> extends EntityRenderer<T> 
         return TEXTURE;
     }
 
-    private void onOpen(BackpackEntity entity) {
+    private void onOpen(Backpack entity) {
         float headX = entity.headX;
         float speed = Math.max((-Math.abs(headX + .4F) + .6F) / 5, entity.isOpen() ? 0 : 0.1F);
         if (entity.isOpen()) speed /= -2;

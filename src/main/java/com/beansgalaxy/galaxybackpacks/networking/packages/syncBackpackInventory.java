@@ -30,10 +30,10 @@ public class syncBackpackInventory {
 
     // SYNCS THE SERVER PLAYER'S BACKPACK INVENTORY TO THE CLIENT PLAYER
     public static void S2C(ServerPlayerEntity player) {
-        DefaultedList<ItemStack> stack = BackpackItem.getInventory(player).getItemStacks();
+        BackpackInventory backpackInventory = BackpackItem.getInventory(player);
         PacketByteBuf buf = PacketByteBufs.create();
         NbtCompound compound = new NbtCompound();
-        Inventories.writeNbt(compound, stack);
+        backpackInventory.writeNbt(compound, backpackInventory.isEmpty());
         String string = compound.asString();
         buf.writeString(string);
         ServerPlayNetworking.send(player, NetworkPackages.BACKPACK_INVENTORY_2C, buf);

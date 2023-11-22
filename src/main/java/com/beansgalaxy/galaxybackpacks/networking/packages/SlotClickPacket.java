@@ -11,7 +11,9 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -46,7 +48,7 @@ public class SlotClickPacket {
         ClientPlayNetworking.send(NetworkPackages.SLOT_CLICK_2S, buf);
     }
 
-    @Unique // TODO : CLIENT NEEDS TO UPDATE TO THE SERVER
+    @Unique
     public static void interceptSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, boolean sprintKeyPress) {
         ScreenHandler p = player.playerScreenHandler;
         BackpackInventory backpackInventory = BackpackItem.getInventory(player);
@@ -109,7 +111,7 @@ public class SlotClickPacket {
         }
     }
 
-    private static void dropBackpack(PlayerEntity player, ItemStack backpackStack, DefaultedList<ItemStack> itemStacks) {
+    public static void dropBackpack(PlayerEntity player, ItemStack backpackStack, DefaultedList<ItemStack> itemStacks) {
         World world = player.getWorld();
         BackpackEntity backpackEntity = new BackpackEntity(player.getWorld(), player.getBlockPos(), Direction.UP, itemStacks);
         backpackEntity.initDisplay(((BackpackItem) backpackStack.getItem()).getKind().getString(), backpackStack);

@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ArmorMaterials;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket;
 import net.minecraft.particle.ParticleTypes;
@@ -27,10 +28,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 
 public enum Kind {
+    POT("pot", 999, null),
     NETHERITE("netherite", 12, ArmorMaterials.NETHERITE),
     GOLD("gold", 9, ArmorMaterials.GOLD),
     IRON("iron", 9, ArmorMaterials.IRON),
-    WOODEN("wooden", 999, null),
     LEATHER("leather", 4, null),
     NULL("", 999, null);
 
@@ -47,10 +48,10 @@ public enum Kind {
     public Item getItem() {
         Item item = ItemRegistry.NULL_BACKPACK.asItem();
         switch (this) {
+            case POT -> item = Items.DECORATED_POT.asItem();
             case NETHERITE -> item = ItemRegistry.NETHERITE_BACKPACK.asItem();
             case GOLD -> item = ItemRegistry.GOLD_BACKPACK.asItem();
             case IRON -> item = ItemRegistry.IRON_BACKPACK.asItem();
-            case WOODEN -> item = ItemRegistry.WOODEN_BACKPACK.asItem();
             case LEATHER -> item = ItemRegistry.LEATHER_BACKPACK.asItem();
         }
         return item;
@@ -73,8 +74,9 @@ public enum Kind {
     }
 
     public static boolean isBackpackItem(ItemStack stack) {
+        Item item = stack.getItem();
         for(Kind kind : Kind.values())
-            if (Objects.equals(stack.getItem(), kind.getItem()))
+            if (Objects.equals(item, kind.getItem()))
                 return true;
         return false;
     }
@@ -94,6 +96,8 @@ public enum Kind {
     }
 
     public static Kind fromItem(ItemStack stack) {
+        if (stack.isOf(Items.DECORATED_POT))
+            return POT;
         if (isBackpackItem(stack)) {
             BackpackItem backpackItem = (BackpackItem) stack.getItem();
             for (Kind kind : Kind.values())
@@ -123,56 +127,5 @@ public enum Kind {
             return getMaxStacks(backpackItem.getKind());
         }
         return 0;
-    }
-
-    public static ActionResult openBackpackMenu(PlayerEntity thisPlayer, PlayerEntity otherPlayer) {
-
-        // CHECKS ROTATION OF BOTH PLAYERS
-        double yaw = Math.abs(thisPlayer.headYaw - otherPlayer.bodyYaw) % 360 - 180;
-        boolean yawMatches = Math.abs(yaw) > 90;
-
-        // OFFSETS OTHER PLAYER'S POSITION
-        double angleRadians = Math.toRadians(otherPlayer.bodyYaw);
-        double offset = -0.3;
-        double x = otherPlayer.getX();
-        double z = otherPlayer.getZ();
-        double offsetX = Math.cos(angleRadians) * offset;
-        double offsetZ = Math.sin(angleRadians) * offset;
-        double newX = x - offsetZ;
-        double newY = otherPlayer.getEyeY() - .45;
-        double newZ = z + offsetX;
-
-        // CHECKS IF PLAYER IS LOOKING
-        Vec3d vec3d = thisPlayer.getRotationVec(1.0f).normalize();
-        Vec3d vec3d2 = new Vec3d(newX - thisPlayer.getX(), newY - thisPlayer.getEyeY(), newZ - thisPlayer.getZ());
-        double d = -vec3d2.length() + 5.65;
-        double e = vec3d.dotProduct(vec3d2.normalize());
-        double maxRadius = 0.05;
-        double radius = (d * d * d * d) / 625;
-        boolean looking = e > 1.0 - radius * maxRadius && thisPlayer.canSee(otherPlayer);
-
-        if (yawMatches && looking) { // INTERACT WITH BACKPACK CODE GOES HERE
-            // ENABLE THIS LINE OF CODE BELOW TO SHOW WHEN THE BACKPACK IS INTERACTED WITH
-            //thisPlayer.getWorld().addParticle(ParticleTypes.FIREWORK, newX, otherPlayer.getEyeY() + 0.1, newZ, 0, 0, 0);
-
-            ItemStack backpackStack = otherPlayer.playerScreenHandler.slots.get(BackpackItem.SLOT_INDEX).getStack();
-            DefaultedList<ItemStack> itemStacks = BackpackItem.getInventory(otherPlayer).getItemStacks();
-
-            BackpackEntity backpackEntity = new BackpackEntity(thisPlayer.getWorld(), new BlockPos(0, Integer.MAX_VALUE, 0), Direction.UP);
-            backpackEntity.initDisplay(((BackpackItem) backpackStack.getItem()).getKind().getString(), backpackStack);
-            backpackEntity.setNoGravity(true);
-            backpackEntity.itemStacks = itemStacks;
-
-            World world = thisPlayer.getWorld();
-            if (world instanceof ServerWorld serverWorld) {
-                serverWorld.tryLoadEntity(backpackEntity);
-            }
-
-            thisPlayer.openHandledScreen(backpackEntity);
-
-            return ActionResult.SUCCESS;
-        }
-
-        return ActionResult.PASS;
     }
 }

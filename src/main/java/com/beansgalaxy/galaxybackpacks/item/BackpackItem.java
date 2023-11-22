@@ -34,8 +34,8 @@ public class BackpackItem extends Item implements DyeableItem {
     public static int SLOT_INDEX;
     private final Kind kind;
 
-    public BackpackItem(Kind kind) {
-        super(new Item.Settings().maxCount(1));
+    public BackpackItem(Kind kind, Item.Settings settings) {
+        super(settings.maxCount(1));
         this.kind = kind;
     }
 

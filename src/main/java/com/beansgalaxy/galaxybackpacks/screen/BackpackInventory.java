@@ -9,10 +9,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.List;
@@ -45,7 +47,16 @@ public interface BackpackInventory extends Inventory {
     }
 
     default ItemStack removeStack(int slot) {
-        return size() > slot ? this.getItemStacks().remove(slot) : ItemStack.EMPTY;
+        if (size() > slot) {
+            ItemStack stack = getItemStacks().get(slot);
+            int maxCount = stack.getMaxCount();
+            if (stack.getCount() > maxCount) {
+                stack.decrement(maxCount);
+                return stack.copyWithCount(maxCount);
+            }
+            return this.getItemStacks().remove(slot);
+        }
+        return ItemStack.EMPTY;
     }
 
     default void setStack(int slot, ItemStack stack) {
@@ -86,7 +97,7 @@ public interface BackpackInventory extends Inventory {
             ItemStack lookSlot = getStack(i);
             if (stack.isOf(lookSlot.getItem()) && !stack.isEmpty()) {
                 int count = stack.getCount() + lookSlot.getCount();
-                int maxCount = stack.getMaxCount();
+                int maxCount = getKind() == Kind.POT ? Integer.MAX_VALUE : stack.getMaxCount();
                 if (count > maxCount) {
                     lookSlot.setCount(maxCount);
                     count -= maxCount;
@@ -101,17 +112,52 @@ public interface BackpackInventory extends Inventory {
         NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < nbtList.size(); ++i) {
             NbtCompound nbtCompound = nbtList.getCompound(i);
-            this.getItemStacks().add(ItemStack.fromNbt(nbtCompound));
+
+            ItemStack stack = new ItemStack(Registries.ITEM.get(new Identifier(nbtCompound.getString("id"))), nbtCompound.getInt("Count"));
+            if (nbtCompound.contains("tag", NbtElement.COMPOUND_TYPE)) {
+                stack.setNbt(nbtCompound.getCompound("tag"));
+                stack.getItem().postProcessNbt(stack.getNbt());
+            }
+            if (stack.getItem().isDamageable()) {
+                stack.setDamage(stack.getDamage());
+            }
+
+            this.getItemStacks().add(stack);
         }
     }
+
+    default NbtCompound writeNbt(NbtCompound nbt, boolean setIfEmpty) {
+        NbtList nbtList = new NbtList();
+        DefaultedList<ItemStack> stacks = getItemStacks();
+        for (int i = 0; i < stacks.size(); ++i) {
+            ItemStack itemStack = stacks.get(i);
+            if (itemStack.isEmpty()) continue;
+            NbtCompound nbtCompound = new NbtCompound();
+            nbtCompound.putByte("Slot", (byte)i);
+
+            Identifier identifier = Registries.ITEM.getId(itemStack.getItem());
+            nbtCompound.putString("id", identifier == null ? "minecraft:air" : identifier.toString());
+            nbtCompound.putInt("Count", itemStack.getCount());
+            if (itemStack.getNbt() != null) {
+                nbtCompound.put("tag", itemStack.getNbt().copy());
+            }
+
+            nbtList.add(nbtCompound);
+        }
+        if (!nbtList.isEmpty() || setIfEmpty) {
+            nbt.put("Items", nbtList);
+        }
+        return nbt;
+    }
+
 
     default boolean canInsert(ItemStack stack) {
         boolean isEmpty = getItemStacks().isEmpty();
         ItemStack stack1 = isEmpty ? ItemStack.EMPTY : getItemStacks().get(0);
         boolean sameStack = !stack.isOf(stack1.getItem());
-        boolean isWooden = getKind() == Kind.WOODEN;
-        boolean isSpace = spaceLeft() < 1;
-        if (!isEmpty && isWooden && sameStack || isSpace)
+        boolean isPot = getKind() == Kind.POT;
+        boolean isFull = spaceLeft() < 1;
+        if (!isEmpty && isPot && sameStack || isFull)
             return false;
         return true;
     }

@@ -1,6 +1,7 @@
 package com.beansgalaxy.galaxybackpacks.mixin;
 
 import com.beansgalaxy.galaxybackpacks.client.player.BackpackFeatureRenderer;
+import com.beansgalaxy.galaxybackpacks.client.player.PotFeatureRenderer;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
@@ -21,7 +22,8 @@ public abstract class PlayerRendererMixin
 
     @Inject(method = "<init>", at = @At(value = "TAIL"))
     private void onConstructed(EntityRendererFactory.Context ctx, boolean slim, CallbackInfo ci) {
-        this.addFeature(new BackpackFeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>>(this, ctx.getModelLoader(), ctx.getModelManager()));
+        this.addFeature(new PotFeatureRenderer<>(this, ctx.getModelLoader()));
+        this.addFeature(new BackpackFeatureRenderer<>(this, ctx.getModelLoader(), ctx.getModelManager()));
     }
 
     @Override
