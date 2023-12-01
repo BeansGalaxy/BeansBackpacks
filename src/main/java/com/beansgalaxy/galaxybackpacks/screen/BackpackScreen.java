@@ -2,17 +2,21 @@ package com.beansgalaxy.galaxybackpacks.screen;
 
 import com.beansgalaxy.galaxybackpacks.Main;
 import com.beansgalaxy.galaxybackpacks.entity.Backpack;
-import com.beansgalaxy.galaxybackpacks.entity.BackpackEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Position;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Vector3f;
 
@@ -25,6 +29,20 @@ public class BackpackScreen extends HandledScreen<BackpackScreenHandler> {
         super(handler, inventory, title);
         this.handler = handler;
         this.backgroundHeight = 256;
+    }
+
+    protected void handledScreenTick() {
+        super.handledScreenTick();
+        if (handler.viewer instanceof ClientPlayerEntity viewer) {
+            boolean hasMoved = !handler.owner.getPos().isInRange(handler.ownerPos.toCenterPos(), 2d);
+            boolean notInRange = !handler.owner.getPos().isInRange(viewer.getPos(), 5.0d);
+            boolean yawChanged = false;
+            if (handler.owner instanceof OtherClientPlayerEntity owner) {
+                yawChanged = !Viewable.yawMatches(handler.ownerYaw, owner.bodyYaw, 35);
+            }
+            if (hasMoved || notInRange || yawChanged)
+                viewer.closeHandledScreen();
+        }
     }
 
     @Override
@@ -57,12 +75,12 @@ public class BackpackScreen extends HandledScreen<BackpackScreenHandler> {
         context.enableScissor(x - 80, y - 220, x + 80, y + 36);
         float relX = -((width / 2f) - mouseX);
         float relY = (height / 2f) - mouseY - (height / 2f);
-        float h = (float) (Math.atan(relX) * Math.atan(Math.pow(relX, 4) / (width * 100000)));
-        float g = Math.max(Math.abs(h), Math.abs(relX / 314));
+        float h = (float) (Math.atan(relX) * Math.atan(Math.pow(relX, 4) / (width * width * 1500))) * 2;
+        float g = Math.max(Math.abs(h), Math.abs(relX / 150));
         int i = relX > 0 ? 1 : -1;
         context.getMatrices().translate(x + 3, y + 49 - mouseY / 12f, 60);
         context.getMatrices().multiply(RotationAxis.POSITIVE_X.rotationDegrees(relY / 14 - 10));
-        context.getMatrices().multiply(RotationAxis.POSITIVE_Y.rotation(i * g));
+        context.getMatrices().multiply(RotationAxis.POSITIVE_Y.rotation(i * g / 2));
         context.getMatrices().scale(scale, -scale, scale);
         EntityRenderDispatcher entRD = MinecraftClient.getInstance().getEntityRenderDispatcher();
         DiffuseLighting.enableGuiDepthLighting();

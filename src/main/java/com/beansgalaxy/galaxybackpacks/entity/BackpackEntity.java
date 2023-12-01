@@ -2,23 +2,19 @@ package com.beansgalaxy.galaxybackpacks.entity;
 
 import com.beansgalaxy.galaxybackpacks.Main;
 import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
-import com.beansgalaxy.galaxybackpacks.networking.packages.InteractPacket;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
+import com.beansgalaxy.galaxybackpacks.screen.BackSlot;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
-import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
@@ -33,34 +29,29 @@ import java.util.List;
 
 public class BackpackEntity extends Backpack {
     protected BlockPos pos;
-    protected double YPosRaw;
-    protected Direction direction;
+    public double YPosRaw;
+    public Direction direction;
     private int breakScore;
 
-    // CREATES ENTITY FROM PLAYER INVENTORY
-    public BackpackEntity(World world, BlockPos pos, Direction direction, DefaultedList<ItemStack> stacks) {
-        this(world, pos, direction);
+    public BackpackEntity(World world, int x, double y, int z, Direction direction, DefaultedList<ItemStack> stacks) {
+        this(Main.ENTITY_BACKPACK, world);
+        this.YPosRaw = y;
+        this.pos = BlockPos.ofFloored(x, y, z);
+        this.setDirection(direction);
+
         this.itemStacks.addAll(stacks);
         stacks.clear();
-    }
-    /** BACKPACK CREATION **/
-    // CREATES BACKPACK ENTITY FROM BACKPACK ITEM
-    public BackpackEntity(World world, BlockPos pos, Direction direction) {
-        this(Main.ENTITY_BACKPACK, world);
-        this.YPosRaw = pos.getY() + 2D / 16;
-        this.pos = pos;
-        this.setDirection(direction);
     }
 
     public BackpackEntity(EntityType<Entity> entityEntityType, World world) {
         super(entityEntityType, world);
-
+        this.intersectionChecked = true;
     }
 
     public Backpack createMirror() {
-        Backpack entity = new Backpack(this.world());
+        Backpack entity = new Backpack(getWorld());
         entity.setDisplay(this.getDisplay());
-        entity.headX = this.headX;
+        entity.headPitch = this.headPitch;
         return entity;
     }
 
@@ -92,35 +83,52 @@ public class BackpackEntity extends Backpack {
         this.velocityDirty = true;
     }
 
-    // BUILDS NEW BOUNDING BOX
-    protected void recalculateBoundingBox() {
-        double x = this.pos.getX() + 0.5D;
-        double y = this.YPosRaw;
-        double z = this.pos.getZ() + 0.5D;
-        double H = 9D / 16;
+    public static Box newBox(BlockPos blockPos, double y, double height, Direction direction) {
+        double x1 = blockPos.getX() + 0.5D;
+        double z1 = blockPos.getZ() + 0.5D;
         double Wx = 8D / 32;
         double Wz = 8D / 32;
         if (direction != null) {
             if (direction.getAxis().isHorizontal()) {
                 double D = 4D / 32;
                 double off = 6D / 16;
-                int stepX = this.direction.getOffsetX();
-                int stepZ = this.direction.getOffsetZ();
+                int stepX = direction.getOffsetX();
+                int stepZ = direction.getOffsetZ();
                 Wx -= D * Math.abs(stepX);
                 Wz -= D * Math.abs(stepZ);
-                x -= off * stepX;
-                z -= off * stepZ;
+                x1 -= off * stepX;
+                z1 -= off * stepZ;
             } else {
                 Wx -= 1D / 16;
                 Wz -= 1D / 16;
             }
         }
-        this.setPos(x, y, z);
-        this.setBoundingBox(new Box(x - Wx, y, z - Wz, x + Wx, y + H, z + Wz));
+
+        return new Box(x1 - Wx, y, z1 - Wz, x1 + Wx, y + height, z1 + Wz);
     }
 
-    /** IMPLEMENTS GRAVITY WHEN HUNG BACKPACKS LOOSE SUPPORTING BLOCK **/
+    // BUILDS NEW BOUNDING BOX
+    protected void recalculateBoundingBox() {
+        double x = this.pos.getX() + 0.5D;
+        double y = this.YPosRaw;
+        double z = this.pos.getZ() + 0.5D;
+        if (direction != null && direction.getAxis().isHorizontal()) {
+            double off = 6D / 16;
+            int stepX = this.direction.getOffsetX();
+            int stepZ = this.direction.getOffsetZ();
+            x -= off * stepX;
+            z -= off * stepZ;
+        }
+
+        Box box = newBox(this.pos, y, 9D / 16, direction);
+
+        this.setPos(x, y, z);
+        this.setBoundingBox(box);
+    }
+
+    /** IMPLEMENTS GRAVITY WHEN HUNG BACKPACKS LOSES SUPPORTING BLOCK **/
     public void tick() {
+        super.tick();
         this.setNoGravity(this.hasNoGravity() && !this.getWorld().isSpaceEmpty(this, this.getBoundingBox().expand(0.1, -0.1, 0.1)));
         boolean inLava = this.isInLava();
         Kind b$kind = getKind();
@@ -137,11 +145,8 @@ public class BackpackEntity extends Backpack {
                 this.setVelocity(this.getVelocity().multiply(0.98D));
             }
         }
-        if (breakScore > 0) {
-            if (breakScore > 45)
-                breakAndDropContents();
+        if (breakScore > 0)
             breakScore -= 1;
-        }
         if (inLava && b$kind != Kind.NETHERITE)
             breakScore += 8;
         this.move(MovementType.SELF, this.getVelocity());
@@ -179,10 +184,6 @@ public class BackpackEntity extends Backpack {
 
     public boolean isFireImmune() {
         return getKind() == Kind.NETHERITE ? true : this.getType().isFireImmune();
-    }
-
-    boolean isPlayerStaring(PlayerEntity player) {
-        return false;
     }
 
     /** DATA MANAGEMENT **/
@@ -249,14 +250,22 @@ public class BackpackEntity extends Backpack {
                 this.scheduleVelocityUpdate();
             }
             else {
-                Slot backSlot = BackpackItem.getSlot(player);
-                if (backSlot.hasStack() && !this.getItemStacks().isEmpty()) {
-                    double d = Math.sqrt(getItemStacks().size());
-                    double damage = (d * -8 + 40);
-                    breakScore += Math.min(Math.max(8, damage), 30) / 2;
+                Slot backSlot = BackSlot.get(player);
+                if (!backSlot.hasStack() && this.getItemStacks().isEmpty())
+                    return attemptEquip(player, this);
+
+                double d = Math.sqrt(getItemStacks().size());
+                double damage = (d * -8 + 40);
+                breakScore += Math.min(Math.max(8, damage), 30) / 2;
+
+                if (breakScore > 45) {
+                    breakAndDropContents();
+                    return true;
+                }
+                else {
+                    PlaySound.HIT.at(this);
                     return hop(height);
                 }
-                return attemptEquip(player, this, true);
             }
         }
 
@@ -267,7 +276,8 @@ public class BackpackEntity extends Backpack {
     }
 
     private void breakAndDropContents() {
-        boolean dropItems = world().getGameRules().getBoolean(GameRules.DO_TILE_DROPS);
+        PlaySound.BREAK.at(this);
+        boolean dropItems = getWorld().getGameRules().getBoolean(GameRules.DO_TILE_DROPS);
         if (dropItems) {
             while (!getItemStacks().isEmpty()) {
                 ItemStack stack = getItemStacks().remove(0);
@@ -290,56 +300,67 @@ public class BackpackEntity extends Backpack {
             if (!this.direction.getAxis().isHorizontal())
                 this.setYaw(this.getYaw() + random.nextInt(10) - 4);
         }
-        return false;
+        return true;
     }
 
-    public static boolean attemptEquip(PlayerEntity player, BackpackEntity backpackEntity, boolean sprintKeyPressed) {
+    // PREFORMS THIS ACTION WHEN IT IS RIGHT-CLICKED
+    @Override
+    public ActionResult interact(PlayerEntity player, Hand hand) {
+        boolean sprintKeyPressed = BackSlot.get(player).sprintKeyIsPressed;
+        ItemStack backStack = BackSlot.get(player).getStack();
+        ItemStack handStack = player.getMainHandStack();
+        ItemStack backpackStack = sprintKeyPressed ? backStack : handStack;
+
+        if (Kind.isBackpack(backpackStack))
+            return BackpackItem.useOnBackpack(player, this, backpackStack, sprintKeyPressed);
+
         if (!sprintKeyPressed) {
-            player.openHandledScreen(backpackEntity);
-            backpackEntity.viewers++;
-            if (!player.getWorld().isClient) {
-                Box box = backpackEntity.getBoundingBox().expand(60);
-                List<ServerPlayerEntity> entityList = backpackEntity.getEntityWorld().getEntitiesByClass(ServerPlayerEntity.class, box, EntityPredicates.VALID_LIVING_ENTITY);
-                while (!entityList.isEmpty()) {
-                    ServerPlayerEntity serverPlayer = entityList.remove(0);
-                    InteractPacket.S2C(serverPlayer, backpackEntity, backpackEntity.viewers);
-                }
-            }
-            return true;
+            if (viewers < 1)
+                PlaySound.OPEN.at(this);
+            player.openHandledScreen(this);
+            return ActionResult.SUCCESS;
         }
-        Slot backSlot = BackpackItem.getSlot(player);
+
+        attemptEquip(player, this);
+        return ActionResult.SUCCESS;
+    }
+
+    public static boolean attemptEquip(PlayerEntity player, BackpackEntity backpackEntity) {
+        Slot backSlot = BackSlot.get(player);
         if (backSlot.hasStack() && !backpackEntity.isRemoved()) {
-            if (backpackEntity.getItemStacks().isEmpty())
-                if (player.getWorld().isClient())
-                    PlaySound.DROP.at(player);
-                else backpackEntity.dropStack(Kind.toStack(backpackEntity));
-            else return backpackEntity.hop(.1);
+            if (backpackEntity.getItemStacks().isEmpty()) {
+                if (!player.getWorld().isClient())
+                    backpackEntity.dropStack(Kind.toStack(backpackEntity));
+                PlaySound.BREAK.at(backpackEntity);
+            }
+            else {
+                PlaySound.HIT.at(backpackEntity);
+                return backpackEntity.hop(.1);
+            }
         }
         else {
 /*                  Equips Backpack only if...
                       - damage source is player.
                       - player is not creative.
                       - backSlot is not occupied */
-            DefaultedList<ItemStack> playerInventoryStacks = BackpackItem.getInventory(player).getItemStacks();
+            DefaultedList<ItemStack> playerInventoryStacks = BackSlot.getInventory(player).getItemStacks();
             DefaultedList<ItemStack> backpackEntityStacks = backpackEntity.getItemStacks();
             playerInventoryStacks.clear();
             playerInventoryStacks.addAll(backpackEntityStacks);
             backSlot.setStack(Kind.toStack(backpackEntity));
-            if (player.getWorld().isClient())
-                PlaySound.EQUIP.at(player);
+            PlaySound.EQUIP.at(player);
         }
         if (!backpackEntity.isRemoved() && !player.getWorld().isClient()) {
             backpackEntity.kill();
             backpackEntity.scheduleVelocityUpdate();
         }
-        return false;
+        return true;
     }
 
     @Override
     public ItemStack getPickBlockStack() {
         return Kind.toStack(this);
     }
-
     /** REQUIRED FEILDS **/
     protected boolean shouldSetPositionOnLoad() {
         return false;
@@ -349,43 +370,12 @@ public class BackpackEntity extends Backpack {
         return true;
     }
 
-    /** INVENTORY SCREEN **/
-    // PREFORMS THIS ACTION WHEN IT IS RIGHT-CLICKED
-    @Override
-    public ActionResult interact(PlayerEntity player, Hand hand) {
-        if (world().isClient) {
-            boolean sprintKeyPressed = MinecraftClient.getInstance().options.sprintKey.isPressed();
-            attemptEquip(player, this, sprintKeyPressed);
-            InteractPacket.C2S((AbstractClientPlayerEntity) player, this, sprintKeyPressed);
-        }
-        if (!player.getWorld().isClient) {
-            return ActionResult.CONSUME;
-        }
-        return ActionResult.SUCCESS;
-    }
-
-    public void onClose(PlayerEntity p) {
-        if (viewers > 0) viewers--;
-        if (!world().isClient) {
-            Box box = this.getBoundingBox().expand(60);
-            List<ServerPlayerEntity> entityList = this.getEntityWorld().getEntitiesByClass(ServerPlayerEntity.class, box, EntityPredicates.VALID_LIVING_ENTITY);
-            while (!entityList.isEmpty()) {
-                ServerPlayerEntity player = entityList.remove(0);
-                InteractPacket.S2C(player, this, viewers);
-            }
-        }
-    }
-
-    public World world() {
-        return this.getWorld();
+    public void onOpen(PlayerEntity player) {
+        this.addViewer(player);
     }
 
     public Vec3d position() {
         return new Vec3d(this.pos.getX(), this.YPosRaw, this.pos.getZ());
     }
 
-
-    public boolean canPlayerUse(PlayerEntity player) {
-        return !this.isRemoved() && this.position().isInRange(player.getPos(), 8.0D);
-    }
 }

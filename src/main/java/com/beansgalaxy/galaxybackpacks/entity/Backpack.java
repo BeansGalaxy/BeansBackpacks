@@ -1,10 +1,9 @@
 package com.beansgalaxy.galaxybackpacks.entity;
 
 import com.beansgalaxy.galaxybackpacks.Main;
-import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
-import com.beansgalaxy.galaxybackpacks.networking.packages.syncBackpackInventory;
 import com.beansgalaxy.galaxybackpacks.screen.BackpackInventory;
 import com.beansgalaxy.galaxybackpacks.screen.BackpackScreenHandler;
+import com.beansgalaxy.galaxybackpacks.screen.Viewable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -13,25 +12,26 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 
-public class Backpack extends Entity implements ExtendedScreenHandlerFactory, BackpackInventory  {
+public class Backpack extends Entity implements ExtendedScreenHandlerFactory, BackpackInventory, Viewable {
     public static final TrackedData<String> BACKPACK_KIND = DataTracker.registerData(Backpack.class, TrackedDataHandlerRegistry.STRING);
     public static final TrackedData<Integer> BACKPACK_COLOR = DataTracker.registerData(Backpack.class, TrackedDataHandlerRegistry.INTEGER);
     public static final TrackedData<String> BACKPACK_MATERIAL = DataTracker.registerData(Backpack.class, TrackedDataHandlerRegistry.STRING);
     public static final TrackedData<String> BACKPACK_PATTERN = DataTracker.registerData(Backpack.class, TrackedDataHandlerRegistry.STRING);
     protected static int DEFAULT_BACKPACK_COLOR = 9062433;
-    public float headX = 0;
 
     public Backpack(World world) {
         this(Main.ENTITY_BACKPACK, world);
@@ -48,6 +48,7 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
 
     // COMMUNICATES WITH "BackpackInventory"
     public DefaultedList<ItemStack> itemStacks = DefaultedList.of();
+
     public DefaultedList<ItemStack> getItemStacks() {
         return this.itemStacks;
     }
@@ -73,6 +74,7 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
 
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
         buf.writeInt(this.getId());
+        buf.writeInt(getOwner().getId());
     }
 
     protected void initDataTracker() {
@@ -89,13 +91,14 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
         this.dataTracker.set(BACKPACK_PATTERN, display.getString("Pattern"));
     }
 
-    public void initDisplay(String kind, ItemStack item) {
+    public void initDisplay(ItemStack backpackStack) {
+        String kind = Kind.fromStack(backpackStack).getString();
         this.dataTracker.set(BACKPACK_KIND, kind);
-        if (item.getSubNbt("display") != null)
-            this.dataTracker.set(BACKPACK_COLOR, item.getSubNbt("display").getInt("color"));
-        if (item.getSubNbt("Trim") != null) {
-            this.dataTracker.set(BACKPACK_MATERIAL, item.getSubNbt("Trim").getString("material"));
-            this.dataTracker.set(BACKPACK_PATTERN, item.getSubNbt("Trim").getString("pattern"));
+        if (backpackStack.getSubNbt("display") != null)
+            this.dataTracker.set(BACKPACK_COLOR, backpackStack.getSubNbt("display").getInt("color"));
+        if (backpackStack.getSubNbt("Trim") != null) {
+            this.dataTracker.set(BACKPACK_MATERIAL, backpackStack.getSubNbt("Trim").getString("material"));
+            this.dataTracker.set(BACKPACK_PATTERN, backpackStack.getSubNbt("Trim").getString("pattern"));
         }
     }
 
@@ -105,73 +108,107 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
     protected void writeCustomDataToNbt(NbtCompound tag) {
     }
 
-    public int viewers = 0;
-    public boolean isOpen() {
-        return viewers > 0 || isMirror();
+    public void onClose(PlayerEntity player) {
+        this.removeViewer(player);
+        if (getViewers() < 1)
+            PlaySound.CLOSE.at(this);
     }
 
-    public void onOpen(PlayerEntity player) {
-        getItemStacks().remove(ItemStack.EMPTY);
+    public void playSound(PlaySound sound) {
+        sound.at(getOwner(), 0.3f);
     }
 
     public ScreenHandler createMenu(int id, PlayerInventory inventory, PlayerEntity player) {
         if (player.isSpectator()) {
             return null;
         } else {
-            return new BackpackScreenHandler(id, player.getInventory(), this);
+            return new BackpackScreenHandler(id, player.getInventory(), this, getOwner());
         }
     }
 
-    public static ActionResult openBackpackMenu(PlayerEntity thisPlayer, PlayerEntity otherPlayer) {
+    // TODO: CONFIG FILE TO DISABLE "maxIterations"
 
-        // CHECKS ROTATION OF BOTH PLAYERS
-        double yaw = Math.abs(thisPlayer.headYaw - otherPlayer.bodyYaw) % 360 - 180;
-        boolean yawMatches = Math.abs(yaw) > 90;
-
-        // OFFSETS OTHER PLAYER'S POSITION
-        double angleRadians = Math.toRadians(otherPlayer.bodyYaw);
-        double offset = -0.3;
-        double x = otherPlayer.getX();
-        double z = otherPlayer.getZ();
-        double offsetX = Math.cos(angleRadians) * offset;
-        double offsetZ = Math.sin(angleRadians) * offset;
-        double newX = x - offsetZ;
-        double newY = otherPlayer.getEyeY() - .45;
-        double newZ = z + offsetX;
-
-        // CHECKS IF PLAYER IS LOOKING
-        Vec3d vec3d = thisPlayer.getRotationVec(1.0f).normalize();
-        Vec3d vec3d2 = new Vec3d(newX - thisPlayer.getX(), newY - thisPlayer.getEyeY(), newZ - thisPlayer.getZ());
-        double d = -vec3d2.length() + 5.65;
-        double e = vec3d.dotProduct(vec3d2.normalize());
-        double maxRadius = 0.05;
-        double radius = (d * d * d * d) / 625;
-        boolean looking = e > 1.0 - radius * maxRadius && thisPlayer.canSee(otherPlayer);
-
-        if (yawMatches && looking) { // INTERACT WITH BACKPACK CODE GOES HERE
-            ItemStack backpackStack = otherPlayer.playerScreenHandler.slots.get(BackpackItem.SLOT_INDEX).getStack();
-            if (!Kind.isBackpackItem(backpackStack))
-                return ActionResult.PASS;
-
-            Backpack backpack = new Backpack(thisPlayer.getWorld()) {
-                public void markDirty() {
-                    if (thisPlayer instanceof ServerPlayerEntity serverPlayer)
-                        syncBackpackInventory.S2C(serverPlayer);
+    /**
+     * Ideally player.dropStack(stack, 0.5f) would handle dropping all items from the Decorated Pot's inventory without the if statement,
+     * however, picking up from an ItemEntity is only capped at {@link Inventory#getMaxCountPerStack()} and not {@link ItemStack#getMaxCount()}.
+     * For most items it works as expected, so I chose to use both rather than dropping each stack separate every time.
+     */
+    public static void drop(PlayerEntity player, ItemStack backpackStack, DefaultedList<ItemStack> itemStacks) {
+        World world = player.getWorld();
+        Kind kind = Kind.fromStack(backpackStack);
+        if (!Kind.isBackpack(backpackStack)) {
+            player.dropStack(backpackStack.copy(), 0.5f);
+            if (kind.isOf(Kind.POT)) {
+                int iteration = 0;
+                int maxIterations = 72;
+                while (!itemStacks.isEmpty() && iteration < maxIterations) {
+                    ItemStack stack = itemStacks.remove(iteration);
+                    if (stack.getMaxCount() == 64) {
+                        player.dropStack(stack, 0.5f);
+                    } else while (stack.getCount() > 0) {
+                        int removedCount = Math.min(stack.getCount(), stack.getMaxCount());
+                        player.dropStack(stack.copyWithCount(removedCount));
+                        stack.decrement(removedCount);
+                    }
+                    iteration++;
                 }
-            };
-
-            DefaultedList<ItemStack> itemStacks = BackpackItem.getInventory(otherPlayer).getItemStacks();
-            backpack.initDisplay(((BackpackItem) backpackStack.getItem()).getKind().getString(), backpackStack);
-            backpack.itemStacks = itemStacks;
-            if (thisPlayer.getWorld() instanceof ServerWorld serverWorld)
-                serverWorld.tryLoadEntity(backpack);
-            thisPlayer.openHandledScreen(backpack);
-
-            // ENABLE THIS LINE OF CODE BELOW TO SHOW WHEN THE BACKPACK IS INTERACTED WITH
-            //thisPlayer.getWorld().addParticle(ParticleTypes.FIREWORK, newX, otherPlayer.getEyeY() + 0.1, newZ, 0, 0, 0);
-            return ActionResult.SUCCESS;
+                SoundEvent soundEvent = iteration >= maxIterations ? SoundEvents.BLOCK_DECORATED_POT_BREAK : SoundEvents.BLOCK_DECORATED_POT_SHATTER;
+                player.playSound(soundEvent, 0.4f, 0.8f);
+            }
+            return;
         }
 
-        return ActionResult.PASS;
+        BlockPos blockPos = player.getBlockPos();
+        int x = blockPos.getX();
+        double y = blockPos.getY() + 2D / 16;
+        int z = blockPos.getZ();
+
+        BackpackEntity backpackEntity = new BackpackEntity(player.getWorld(), x, y, z, Direction.UP, itemStacks);
+        backpackEntity.initDisplay(backpackStack);
+        backpackEntity.setYaw(player.getYaw());
+
+        PlaySound.DROP.at(player);
+        if (!world.isClient()) {
+            world.emitGameEvent(player, GameEvent.ENTITY_PLACE, backpackEntity.position());
+            world.spawnEntity(backpackEntity);
+        }
+    }
+
+    @Override
+    public Entity getOwner() {
+        return this;
+    }
+
+    public boolean isOpen() {
+        return getViewers() > 0 || isMirror();
+    }
+
+    public final DefaultedList<PlayerEntity> playersViewing = DefaultedList.of();
+
+    public DefaultedList<PlayerEntity> getPlayersViewing() {
+        return playersViewing;
+    }
+
+    public float headPitch = 0;
+
+    @Override
+    public float getHeadPitch() {
+        return headPitch;
+    }
+
+    @Override
+    public void setHeadPitch(float headPitch) {
+        this.headPitch = headPitch;
+    }
+
+    public byte viewers = 0;
+
+    public byte getViewers() {
+        return viewers;
+    }
+
+    @Override
+    public void setViewers(byte viewers) {
+        this.viewers = viewers;
     }
 }

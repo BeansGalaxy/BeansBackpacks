@@ -1,18 +1,16 @@
 package com.beansgalaxy.galaxybackpacks.mixin;
 
-import com.beansgalaxy.galaxybackpacks.Main;
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
-import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
-import com.beansgalaxy.galaxybackpacks.register.ItemRegistry;
+import com.beansgalaxy.galaxybackpacks.networking.packages.SyncBackpackInventory;
+import com.beansgalaxy.galaxybackpacks.screen.BackSlot;
 import com.beansgalaxy.galaxybackpacks.screen.BackpackInventory;
-import com.google.common.collect.ImmutableList;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -52,9 +50,9 @@ public abstract class PlayerInventoryMixin implements Inventory {
             compoundTag.putByte("Slot", (byte) (110));
             ItemStack backItem = this.back.get(0);
             backItem.writeNbt(compoundTag);
-            if (Kind.isBackpackItem(backItem)) {
+            if (Kind.isStorage(backItem)) {
                 NbtCompound backTag1 = new NbtCompound();
-                BackpackInventory backpackInventory = BackpackItem.getInventory(player);
+                BackpackInventory backpackInventory = BackSlot.getInventory(player);
                 backpackInventory.writeNbt(backTag1, backpackInventory.isEmpty());
                 compoundTag.put("Contents", backTag1);
             }
@@ -72,8 +70,8 @@ public abstract class PlayerInventoryMixin implements Inventory {
             if (!itemStack.isEmpty()) {
                 if (slot == 110) {
                     this.back.set(0, itemStack);
-                    if (Kind.isBackpackItem(itemStack))
-                        BackpackItem.getInventory(player).readStackNbt(compoundTag.getCompound("Contents"));
+                    if (Kind.isStorage(itemStack))
+                        BackSlot.getInventory(player).readStackNbt(compoundTag.getCompound("Contents"));
                 }
             }
         }
@@ -93,9 +91,5 @@ public abstract class PlayerInventoryMixin implements Inventory {
         if (!this.back.isEmpty()) {
             info.setReturnValue(false);
         }
-    }
-
-    public ItemStack getBackStack(int slot) {
-        return this.back.get(slot);
     }
 }

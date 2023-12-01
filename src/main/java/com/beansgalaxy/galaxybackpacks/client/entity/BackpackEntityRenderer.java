@@ -1,11 +1,12 @@
 package com.beansgalaxy.galaxybackpacks.client.entity;
 
 import com.beansgalaxy.galaxybackpacks.Client;
+import com.beansgalaxy.galaxybackpacks.client.RendererHelper;
 import com.beansgalaxy.galaxybackpacks.client.TrimHelper;
 import com.beansgalaxy.galaxybackpacks.entity.Backpack;
-import com.beansgalaxy.galaxybackpacks.entity.BackpackEntity;
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -37,7 +38,10 @@ public class BackpackEntityRenderer<T extends Entity> extends EntityRenderer<T> 
         super.render(entity, yaw, tickDelta, pose, mbs, light);
         pose.push();
         Backpack bEntity = (Backpack) entity;
-        onOpen(bEntity);
+
+        bEntity.updateOpen();
+        model.head.pitch = bEntity.getHeadPitch();
+
         if (!bEntity.isMirror())
             renderHitbox(pose, mbs.getBuffer(RenderLayer.getLines()), entity, yaw, light);
         pose.translate(0, -21 / 16f, 0);
@@ -46,6 +50,11 @@ public class BackpackEntityRenderer<T extends Entity> extends EntityRenderer<T> 
         Color tint = b$kind == Kind.LEATHER ? new Color(bEntity.getColor()) : new Color(0xFFFFFF);
         Identifier texture = Identifiers.get(b$kind);
         VertexConsumer vc = mbs.getBuffer(this.model.getLayer(texture));
+        ModelPart mask = this.model.mask;
+        mask.xScale = 0.99f;
+        mask.yScale = 1.0005f;
+        mask.zScale = 0.94f;
+        mask.pivotZ = -0.1f;
         this.model.render(pose, vc, light, OverlayTexture.DEFAULT_UV, tint.getRed() / 255F, tint.getGreen() / 255F, tint.getBlue() / 255F, 1F);
         renderOverlays(pose, light, mbs, tint, bEntity, b$kind);
         pose.pop();
@@ -85,17 +94,5 @@ public class BackpackEntityRenderer<T extends Entity> extends EntityRenderer<T> 
     @Override
     public Identifier getTexture(Entity entity) {
         return TEXTURE;
-    }
-
-    private void onOpen(Backpack entity) {
-        float headX = entity.headX;
-        float speed = Math.max((-Math.abs(headX + .4F) + .6F) / 5, entity.isOpen() ? 0 : 0.1F);
-        if (entity.isOpen()) speed /= -2;
-        headX += speed;
-        if (headX > 0) headX = 0;
-        if (headX < -1) headX = -1;
-        //headX = -2f; // HOLDS TOP OPEN FOR TEXTURING
-        entity.headX = headX;
-        model.head.pitch = headX;
     }
 }

@@ -13,8 +13,8 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 
 public class BackpackScreenHandler extends ScreenHandler {
     private static final Identifier BACKPACK_ATLAS = new Identifier("textures/atlas/blocks.png");
@@ -22,14 +22,21 @@ public class BackpackScreenHandler extends ScreenHandler {
     private static int BACKPACK_SLOT_INDEX;
     public final Backpack entity;
     protected final Backpack mirror;
+    protected final PlayerEntity viewer;
+    protected final Entity owner;
+    protected final BlockPos ownerPos;
+    protected final float ownerYaw;
     public int invOffset = 108;
 
     public BackpackScreenHandler(int syncId, PlayerInventory inventory, PacketByteBuf buf) {
-        this(syncId, inventory, inventory.player.getWorld().getEntityById(buf.readInt()));
+        this(syncId, inventory, inventory.player.getWorld().getEntityById(buf.readInt()), inventory.player.getWorld().getEntityById(buf.readInt()));
     }
 
-    public BackpackScreenHandler(int syncId, PlayerInventory playerInventory, Entity entity) {
+    public BackpackScreenHandler(int syncId, PlayerInventory playerInventory, Entity entity, Entity owner) {
         super(ScreenHandlersRegistry.BACKPACK_SCREEN_HANDLER, syncId);
+        this.owner = owner;
+        this.ownerPos = owner.getBlockPos();
+        this.ownerYaw = owner.getBodyYaw();
         if (entity instanceof BackpackEntity bEntity) {
             this.entity = bEntity;
             this.mirror = bEntity.createMirror();
@@ -38,6 +45,7 @@ public class BackpackScreenHandler extends ScreenHandler {
             this.entity = (Backpack) entity;
             this.mirror = this.entity;
         }
+        this.viewer = playerInventory.player;
         createInventorySlots(playerInventory);
         BACKPACK_SLOT_INDEX = slots.size();
         createBackpackSlots(this.entity);
@@ -95,8 +103,6 @@ public class BackpackScreenHandler extends ScreenHandler {
         if (slotIndex == BACKPACK_SLOT_INDEX && actionType != SlotActionType.QUICK_MOVE) {
             ItemStack cursorStack = this.getCursorStack();
             ItemStack slotStack = backpackInventory.getStack(0);
-            if (!cursorStack.isEmpty() || !slotStack.isEmpty())
-                player.playSound(SoundEvents.ITEM_BUNDLE_INSERT, 0.6F, 0.8f + player.getWorld().getRandom().nextFloat() * 0.4f);
             if (button == 0) {
                 this.setPreviousCursorStack(cursorStack);
                 ItemStack stack = backpackInventory.returnStack(0, cursorStack);
@@ -131,15 +137,14 @@ public class BackpackScreenHandler extends ScreenHandler {
         return ItemStack.EMPTY;
     }
 
-
     @Override
     public boolean canUse(PlayerEntity player) {
         return true;
     }
 
     public void onClosed(PlayerEntity player) {
-        mirror.discard();
         entity.onClose(player);
+        mirror.discard();
         super.onClosed(player);
     }
 }

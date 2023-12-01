@@ -3,8 +3,12 @@ package com.beansgalaxy.galaxybackpacks.client;
 import com.beansgalaxy.galaxybackpacks.Main;
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
 import com.beansgalaxy.galaxybackpacks.screen.BackpackScreen;
+import com.beansgalaxy.galaxybackpacks.screen.Viewable;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.SmithingScreen;
+import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.texture.Sprite;
@@ -15,23 +19,44 @@ import net.minecraft.util.Identifier;
 import java.awt.*;
 import java.util.Map;
 
-public class RendererHelper {
-    public static final Identifier TEXTURE = new Identifier(Main.MODID, "textures/entity/backpack/null.png");
-    public static final Identifier OVERLAY_LEATHER = new Identifier(Main.MODID, "textures/entity/backpack/leather_overlay.png");
-    public static final Map<Kind, Identifier> Identifiers = ImmutableMap.of(
+public interface RendererHelper {
+    Identifier TEXTURE = new Identifier(Main.MODID, "textures/entity/backpack/null.png");
+    Identifier OVERLAY_LEATHER = new Identifier(Main.MODID, "textures/entity/backpack/leather_overlay.png");
+    Map<Kind, Identifier> Identifiers = ImmutableMap.of(
             Kind.NULL, new Identifier(Main.MODID, "textures/entity/backpack/null.png"),
             Kind.LEATHER, new Identifier(Main.MODID, "textures/entity/backpack/leather.png"),
             Kind.IRON, new Identifier(Main.MODID, "textures/entity/backpack/iron.png"),
             Kind.GOLD, new Identifier(Main.MODID, "textures/entity/backpack/gold.png"),
             Kind.NETHERITE, new Identifier(Main.MODID, "textures/entity/backpack/netherite.png"));
-    public static final Map<String, Identifier> ButtonIdentifiers = ImmutableMap.of(
+    Map<String, Identifier> ButtonIdentifiers = ImmutableMap.of(
             "gold", new Identifier(Main.MODID, "textures/entity/backpack/overlay/gold.png"),
             "amethyst", new Identifier(Main.MODID, "textures/entity/backpack/overlay/amethyst.png"),
             "diamond", new Identifier(Main.MODID, "textures/entity/backpack/overlay/diamond.png"),
             "netherite", new Identifier(Main.MODID, "textures/entity/backpack/overlay/netherite.png"));
 
 
-    public static void renderTrim(EntityModel<Entity> model, MatrixStack pose, int light, VertexConsumerProvider mbs, Sprite sprite) {
+    static void weld(ModelPart welded, ModelPart weldTo) {
+        welded.pitch = weldTo.pitch;
+        welded.yaw = weldTo.yaw;
+        welded.roll = weldTo.roll;
+        welded.pivotX = weldTo.pivotX;
+        welded.pivotY = weldTo.pivotY;
+        welded.pivotZ = weldTo.pivotZ;
+    }
+
+    static float sneakInter(Entity entity, MatrixStack pose, float sneakInter) {
+        float scale = sneakInter / 3f;
+        pose.translate(0, (1 / 16f) * scale, (1 / 32f) * scale);
+        if (entity.isInSneakingPose())
+            sneakInter += sneakInter < 3 ? 1 : 0;
+        else {
+            sneakInter -= sneakInter > 1 ? 1 : 0;
+            sneakInter -= sneakInter > 0 ? 1 : 0;
+        }
+        return sneakInter;
+    }
+
+    static void renderTrim(EntityModel<Entity> model, MatrixStack pose, int light, VertexConsumerProvider mbs, Sprite sprite) {
         VertexConsumer vc = sprite.getTextureSpecificVertexConsumer(mbs.getBuffer(TexturedRenderLayers.getArmorTrims(false)));
         if (inBackpackScreen()) {
             for (int j = 1; j < 4; j++) {
@@ -41,10 +66,11 @@ public class RendererHelper {
                 pose.translate(0, -scale / 1.1, 0);
                 model.render(pose, vc1, light, OverlayTexture.DEFAULT_UV, 1F, 1F, 1F, 1F);
             }
-        } else model.render(pose, vc, light, OverlayTexture.DEFAULT_UV, 1F, 1F, 1F, 1F);
+        } else
+            model.render(pose, vc, light, OverlayTexture.DEFAULT_UV, 1F, 1F, 1F, 1F);
     }
 
-    public static void renderButton(Kind b$kind, Color tint, EntityModel<Entity> model, MatrixStack pose, int light, VertexConsumerProvider mbs) {
+    static void renderButton(Kind b$kind, Color tint, EntityModel<Entity> model, MatrixStack pose, int light, VertexConsumerProvider mbs) {
         if (b$kind == Kind.LEATHER) {
             VertexConsumer overlayTexture = mbs.getBuffer(RenderLayer.getEntityTranslucent(OVERLAY_LEATHER));
             model.render(pose, overlayTexture, light, OverlayTexture.DEFAULT_UV, 1F, 1F, 1F, 1F);
@@ -65,7 +91,8 @@ public class RendererHelper {
     }
 
     private static boolean inBackpackScreen() {
-        return MinecraftClient.getInstance().currentScreen instanceof BackpackScreen;
+        Screen currentScreen = MinecraftClient.getInstance().currentScreen;
+        return currentScreen instanceof BackpackScreen || currentScreen instanceof SmithingScreen;
     }
 
     private static boolean isYellow(Color tint) {

@@ -49,19 +49,6 @@ public class PlayerPotModel<T extends Entity>
 		return modelParts;
 	}
 
-	public void weld(ModelPart weldTo) {
-		for (int j = 0; j < this.getModelParts().size(); j++) {
-			ModelPart modelPart = getModelParts().get(j);
-
-			modelPart.pitch = weldTo.pitch;
-			modelPart.yaw = weldTo.yaw;
-			modelPart.roll = weldTo.roll;
-			modelPart.pivotX = weldTo.pivotX;
-			modelPart.pivotY = weldTo.pivotY;
-			modelPart.pivotZ = weldTo.pivotZ;
-		}
-	}
-
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
 		ModelPartData modelPartData = modelData.getRoot();

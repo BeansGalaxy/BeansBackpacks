@@ -1,8 +1,8 @@
 package com.beansgalaxy.galaxybackpacks.screen;
 
 import com.beansgalaxy.galaxybackpacks.entity.Kind;
-import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
-import net.minecraft.client.MinecraftClient;
+import com.beansgalaxy.galaxybackpacks.entity.PlaySound;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -10,10 +10,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 
@@ -22,6 +18,7 @@ import java.util.List;
 public interface BackpackInventory extends Inventory {
     DefaultedList<ItemStack> getItemStacks();
     Kind getKind();
+    void playSound(PlaySound sound);
 
     default int size() {
         return getItemStacks().size();
@@ -43,10 +40,19 @@ public interface BackpackInventory extends Inventory {
         List<ItemStack> stacks = getItemStacks();
         ItemStack stack = stacks.get(slot).copyWithCount(amount);
         stacks.get(slot).split(amount);
+        if (!stack.isEmpty())
+            playSound(PlaySound.TAKE);
         return stack;
     }
 
     default ItemStack removeStack(int slot) {
+        ItemStack stack = removeStackSilent(slot);
+        if (!stack.isEmpty())
+            playSound(PlaySound.TAKE);
+        return stack;
+    }
+
+    default ItemStack removeStackSilent(int slot) {
         if (size() > slot) {
             ItemStack stack = getItemStacks().get(slot);
             int maxCount = stack.getMaxCount();
@@ -74,16 +80,24 @@ public interface BackpackInventory extends Inventory {
     }
 
     default ItemStack insertStack(ItemStack stack, int amount) {
+        ItemStack insertedStack = stack.copy();
+        if (insertStackSilent(stack, amount) != insertedStack)
+            playSound(stack.isEmpty() ? PlaySound.INSERT : PlaySound.TAKE);
+        return stack.isEmpty() ? ItemStack.EMPTY : stack;
+    }
+
+    default ItemStack insertStackSilent(ItemStack stack, int amount) {
         int count = Math.min(amount, spaceLeft());
         if (!stack.isEmpty() && count > 0 && canInsert(stack)) {
             this.getItemStacks().add(0, mergeStack(stack.copyWithCount(count)));
             stack.setCount(stack.getCount() - count);
-        } // CLAMP AMOUNT TO STOP ITEMS BEING INSERTED TO BACKPACK
+        }
         return stack;
     }
 
     default int spaceLeft() {
-        int totalWeight = this.getItemStacks().stream().mapToInt(itemstacks -> weightByStack(itemstacks) * itemstacks.getCount()).sum();
+        int totalWeight = this.getItemStacks().stream().mapToInt(
+                itemStacks -> weightByStack(itemStacks) * itemStacks.getCount()).sum();
         return (getKind().getMaxStacks() * 64) - totalWeight;
     }
 
@@ -95,7 +109,7 @@ public interface BackpackInventory extends Inventory {
     private ItemStack mergeStack(ItemStack stack) {
         for (int i = 0; i <= getItemStacks().size(); i++) {
             ItemStack lookSlot = getStack(i);
-            if (stack.isOf(lookSlot.getItem()) && !stack.isEmpty()) {
+            if (!stack.isEmpty() && ItemStack.canCombine(stack, lookSlot)) {
                 int count = stack.getCount() + lookSlot.getCount();
                 int maxCount = getKind() == Kind.POT ? Integer.MAX_VALUE : stack.getMaxCount();
                 if (count > maxCount) {
@@ -162,10 +176,12 @@ public interface BackpackInventory extends Inventory {
         return true;
     }
 
-    default boolean canPlayerUse(PlayerEntity player) {
-        return true;
+    default void markDirty() {
     }
 
-    default void markDirty() {
+
+    @Override
+    default boolean canPlayerUse(PlayerEntity player) {
+        return false;
     }
 }

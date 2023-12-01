@@ -12,16 +12,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class DataGenerator implements DataGeneratorEntrypoint {
 	@Override public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-		fabricDataGenerator.createPack().addProvider(myTagGenerator::new);
-    }
 
-	private static class myTagGenerator extends FabricTagProvider.ItemTagProvider {
-		public myTagGenerator(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> completableFuture) {
-			super(output, completableFuture);
-		}
-
-		@Override protected void configure(RegistryWrapper.WrapperLookup arg) {
-			this.getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR).add(ItemRegistry.IRON_BACKPACK.asItem()).add(ItemRegistry.GOLD_BACKPACK.asItem());
-		}
 	}
 }

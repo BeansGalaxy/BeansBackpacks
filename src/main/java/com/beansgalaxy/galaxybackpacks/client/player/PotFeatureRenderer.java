@@ -2,7 +2,8 @@ package com.beansgalaxy.galaxybackpacks.client.player;
 
 import com.beansgalaxy.galaxybackpacks.Client;
 import com.beansgalaxy.galaxybackpacks.Main;
-import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
+import com.beansgalaxy.galaxybackpacks.client.RendererHelper;
+import com.beansgalaxy.galaxybackpacks.screen.BackSlot;
 import net.minecraft.block.entity.DecoratedPotBlockEntity;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -22,6 +23,8 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
+import static com.beansgalaxy.galaxybackpacks.client.RendererHelper.sneakInter;
+
 public class PotFeatureRenderer<T extends LivingEntity, M extends EntityModel<T>>
         extends FeatureRenderer<T, M> {
 
@@ -38,7 +41,7 @@ public class PotFeatureRenderer<T extends LivingEntity, M extends EntityModel<T>
     public void render(MatrixStack pose, VertexConsumerProvider mbs, int light, T entity, float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
         ItemStack backpackStack;
         if (entity instanceof AbstractClientPlayerEntity player)
-            backpackStack = player.playerScreenHandler.slots.get(BackpackItem.SLOT_INDEX).getStack();
+            backpackStack = player.playerScreenHandler.slots.get(BackSlot.SLOT_INDEX).getStack();
         else
             backpackStack = ItemStack.EMPTY;
         if (!backpackStack.isOf(Items.DECORATED_POT))
@@ -55,8 +58,11 @@ public class PotFeatureRenderer<T extends LivingEntity, M extends EntityModel<T>
 
         PlayerPotModel<?> potModel = (PlayerPotModel<?>) this.model;
         ModelPart torso = ((PlayerEntityModel<?>) this.getContextModel()).body;
-        potModel.weld(torso);
-        sneaking(entity, pose);
+        for (int j = 0; j < potModel.getModelParts().size(); j++) {
+            ModelPart modelPart = potModel.getModelParts().get(j);
+            RendererHelper.weld(modelPart, torso);
+        }
+        sneakInter = sneakInter(entity, pose, sneakInter);
 
         this.model.setAngles(entity, limbAngle, limbDistance, tickDelta, animationProgress, headYaw);
         VertexConsumer vc = mbs.getBuffer(this.model.getLayer(TEXTURE));

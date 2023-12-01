@@ -1,13 +1,10 @@
 package com.beansgalaxy.galaxybackpacks.mixin;
 
 import com.beansgalaxy.galaxybackpacks.entity.Backpack;
-import com.beansgalaxy.galaxybackpacks.entity.Kind;
-import com.beansgalaxy.galaxybackpacks.item.BackpackItem;
-import com.beansgalaxy.galaxybackpacks.networking.packages.SlotClickPacket;
+import com.beansgalaxy.galaxybackpacks.screen.BackSlot;
 import com.beansgalaxy.galaxybackpacks.screen.BackpackInventory;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
@@ -27,18 +24,17 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     }
 
     public ActionResult interact(PlayerEntity player, Hand hand) {
-        return Backpack.openBackpackMenu(player, (PlayerEntity) (Object) this);
+        return BackSlot.openPlayerBackpackMenu(player, (PlayerEntity) (Object) this);
     }
 
     @Inject(method = "dropInventory", at = @At("HEAD"))
     protected void dropInventory(CallbackInfo ci) {
         if (!this.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
             PlayerEntity player = (PlayerEntity) (Object) this;
-            BackpackInventory backpackInventory = BackpackItem.getInventory(player);
-            ItemStack stack = BackpackItem.getSlot(player).getStack();
-            SlotClickPacket.dropBackpack(player, stack, backpackInventory.getItemStacks());
+            BackpackInventory backpackInventory = BackSlot.getInventory(player);
+            ItemStack stack = BackSlot.get(player).getStack();
+            Backpack.drop(player, stack, backpackInventory.getItemStacks());
             stack.setCount(0);
         }
     }
-
-    }
+}
