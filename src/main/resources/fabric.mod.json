@@ -1,32 +1,32 @@
 {
 	"schemaVersion": 1,
-	"id": "galaxybackpacks",
+	"id": "beansbackpacks",
 	"version": "${version}",
-	"name": "Galaxy's Backpacks",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Beans Backpacks",
+	"description": "Hello! I haven't written the description yet so enjoy the mod and read the description on the mod's page or github ty",
 	"authors": [
-		"BeanGalaxy"
+		"BeansGalaxy"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "MIT",
-	"icon": "assets/galaxybackpacks/icon.png",
+	"icon": "assets/beansbackpacks/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "com.beansgalaxy.galaxybackpacks.Main"
+			"com.beansgalaxy.beansbackpacks.BeansBackpacks"
 		],
 		"client": [
-			"com.beansgalaxy.galaxybackpacks.Client"
+			"com.beansgalaxy.beansbackpacks.Client"
 		],
 		"fabric-datagen": [
-          "com.beansgalaxy.galaxybackpacks.DataGenerator"
+          "com.beansgalaxy.beansbackpacks.DataGenerator"
 		]
 	},
 	"mixins": [
-		"galaxybackpacks.mixins.json"
+		"beansbackpacks.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.14.23",

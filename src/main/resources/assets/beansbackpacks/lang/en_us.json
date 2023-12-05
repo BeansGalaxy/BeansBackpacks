@@ -1,0 +1,11 @@
+{
+  "item.minecraft.smithing_template.armor_trim.base_slot_description": "Put a piece of armor or backpack here",
+  "item.beansbackpacks.backpack": "Backpack",
+  "item.beansbackpacks.iron_backpack": "Iron Backpack",
+  "item.beansbackpacks.gold_backpack": "Gold Backpack",
+  "item.beansbackpacks.netherite_backpack": "Netherite Backpack",
+  "entity.backpack.backpack" : "Backpack",
+
+  "key.category.beansbackpacks": "Beans Backpacks",
+  "key.beansbackpacks.action": "Backpack Action Modifier"
+}

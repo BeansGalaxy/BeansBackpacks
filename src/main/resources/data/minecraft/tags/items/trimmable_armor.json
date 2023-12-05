@@ -1,8 +1,8 @@
 {
   "replace": false,
   "values": [
-    "galaxybackpacks:iron_backpack",
-    "galaxybackpacks:gold_backpack",
-    "galaxybackpacks:netherite_backpack"
+    "beansbackpacks:iron_backpack",
+    "beansbackpacks:gold_backpack",
+    "beansbackpacks:netherite_backpack"
   ]
 }
