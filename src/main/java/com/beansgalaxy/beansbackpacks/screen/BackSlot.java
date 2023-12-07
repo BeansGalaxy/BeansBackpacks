@@ -345,7 +345,10 @@ public class BackSlot extends Slot implements Viewable {
         BackSlot backSlot = BackSlot.get(player);
         BackpackInventory backpackInventory = BackSlot.getInventory(player);
 
-        if (Kind.isStorage(backSlot.getStack()) && backpackInventory.canInsert(stack)) {
+        if (backpackInventory.getKind() == null || !Kind.isStorage(backSlot.getStack()))
+            return instance.insertStack(-1, stack);
+
+        if (backpackInventory.canInsert(stack)) {
             instance.main.forEach(stacks -> {
                 if (stacks.isOf(stack.getItem())) {
                     int present = stacks.getCount();

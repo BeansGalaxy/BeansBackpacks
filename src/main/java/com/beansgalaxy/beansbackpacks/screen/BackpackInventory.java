@@ -99,7 +99,7 @@ public interface BackpackInventory extends Inventory {
     default int spaceLeft() {
         int totalWeight = this.getItemStacks().stream().mapToInt(
                 itemStacks -> weightByStack(itemStacks) * itemStacks.getCount()).sum();
-        return (getKind().getMaxStacks() * 64) - totalWeight;
+        return getKind() == null ? 0 : (getKind().getMaxStacks() * 64) - totalWeight;
     }
 
     default int weightByStack(ItemStack stack) {

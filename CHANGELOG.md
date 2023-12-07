@@ -15,6 +15,10 @@
 
 <h1> CHANGELOG </h1>
 
+<h3> v1.1.1 </h3>
+
+- Picking up items while having a full inventory or switching backpacks no longer crashes the game
+
 <h3> v1.1.0 </h3>
 
 - Picking up items now go to your backpack if you have any 
