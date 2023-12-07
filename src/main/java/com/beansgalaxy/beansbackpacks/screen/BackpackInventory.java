@@ -41,6 +41,8 @@ public interface BackpackInventory extends Inventory {
         stacks.get(slot).split(amount);
         if (!stack.isEmpty())
             playSound(PlaySound.TAKE);
+        if (stacks.get(slot).isEmpty())
+            stacks.remove(slot);
         return stack;
     }
 

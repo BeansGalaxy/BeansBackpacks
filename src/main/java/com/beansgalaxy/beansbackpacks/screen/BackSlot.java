@@ -15,12 +15,14 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
+import net.minecraft.item.Items;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
@@ -119,7 +121,7 @@ public class BackSlot extends Slot implements Viewable {
             viewer.openHandledScreen(backpack);
 
             // ENABLE THIS LINE OF CODE BELOW TO SHOW WHEN THE BACKPACK IS INTERACTED WITH
-            owner.getWorld().addParticle(ParticleTypes.FIREWORK, newX, viewer.getEyeY() + 0.1, newZ, 0, 0, 0);
+            //owner.getWorld().addParticle(ParticleTypes.FIREWORK, newX, viewer.getEyeY() + 0.1, newZ, 0, 0, 0);
 
             PlaySound.OPEN.at(owner);
 
@@ -174,6 +176,9 @@ public class BackSlot extends Slot implements Viewable {
 
     // RETURN FALSE TO CANCEL A PLAYER'S INVENTORY CLICK
     public static boolean continueSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+        if (slotIndex < 0)
+            return true;
+
         PlayerScreenHandler playerScreenHandler = player.playerScreenHandler;
         BackpackInventory backpackInventory = BackSlot.getInventory(player);
         PlayerInventory playerInventory = player.getInventory();
@@ -182,21 +187,66 @@ public class BackSlot extends Slot implements Viewable {
         BackSlot backSlot = BackSlot.get(player);
         ItemStack backStack = backSlot.getStack();
 
+        ItemStack backpackStack = backpackInventory.getStack(0);
+        int maxStack = backpackStack.getMaxCount();
+
         Slot slot = playerScreenHandler.slots.get(slotIndex);
         ItemStack stack = slot.getStack();
 
-        if (slotIndex < BackSlot.SLOT_INDEX && backSlot.sprintKeyIsPressed && backStack.isEmpty() && Kind.isWearable(stack)) {
+
+        if (slotIndex == SLOT_INDEX + 1 && Kind.POT.isOf(backStack)) {
+            if (actionType == SlotActionType.THROW && cursorStack.isEmpty()) {
+                int count = button == 0 ? 1 : Math.min(stack.getCount(), maxStack);
+                ItemStack itemStack = backpackInventory.removeStack(0, count);
+                player.dropItem(itemStack, true);
+                return false;
+            }
+            if (actionType == SlotActionType.SWAP) {
+                ItemStack itemStack = playerInventory.getStack(button);
+                if (itemStack.isEmpty()) {
+                    if (backpackStack.getCount() > maxStack) {
+                        playerInventory.setStack(button, backpackStack.copyWithCount(maxStack));
+                        backpackStack.decrement(maxStack);
+                        return false;
+                    }
+                    playerInventory.setStack(button, backpackInventory.removeStack(0));
+                }
+                else {
+                    if (backpackStack.isEmpty())
+                        return true;
+                    if (backpackStack.getCount() > maxStack)
+                        if (playerInventory.insertStack(-1, itemStack)) {
+                            playerInventory.setStack(button, backpackStack.copyWithCount(maxStack));
+                            backpackStack.decrement(maxStack);
+                            return false;
+                        }
+                    playerInventory.setStack(button, backpackInventory.removeStack(0));
+                    backpackInventory.insertStack(itemStack, itemStack.getCount());
+                }
+                return false;
+            }
+            if (button == 1 && cursorStack.isEmpty() && backpackStack.getCount() > maxStack) {
+                int count = Math.max(1, maxStack / 2);
+                ItemStack splitStack = backpackInventory.removeStack(0, count);
+                playerScreenHandler.setCursorStack(splitStack);
+                return false;
+            }
+        }
+
+        if (actionType == SlotActionType.THROW)
+            return true;
+
+        if (slotIndex < SLOT_INDEX && backSlot.sprintKeyIsPressed && backStack.isEmpty() && Kind.isWearable(stack)) {
             backSlot.insertStack(stack);
             return false;
         }
 
         if (actionType == SlotActionType.QUICK_MOVE) {
-            if (slotIndex == BackSlot.SLOT_INDEX + 1) {
+            if (slotIndex == SLOT_INDEX + 1) {
                 if (Kind.POT.isOf(backStack))
-                    playerInventory.insertStack(backpackInventory.removeStack(0));
+                    playerInventory.insertStack(-1, backpackInventory.removeStack(0));
                 else if (!Kind.isBackpack(backStack) && Kind.fromStack(backStack) != null) {
-                    ItemStack backpackStack = backpackInventory.getItemStacks().get(0);
-                    player.getInventory().insertStack(backpackStack);
+                    player.getInventory().insertStack(-1, backpackStack);
                     if (backpackStack.isEmpty())
                         backpackInventory.removeStack(0);
                 } else
@@ -206,52 +256,46 @@ public class BackSlot extends Slot implements Viewable {
         }
         else if (Kind.isWearable(backStack)) {
             if (backSlot.sprintKeyIsPressed) {
-                if (slotIndex == BackSlot.SLOT_INDEX && Kind.isBackpack(stack)) {
+                if (slotIndex == SLOT_INDEX && Kind.isStorage(stack)) {
+                    if (Kind.POT.isOf(stack))
+                        return false;
                     if (backpackInventory.isEmpty())
-                        player.getInventory().insertStack(stack);
+                        player.getInventory().insertStack(-1, stack);
                     else {
                         Backpack.drop(player, stack, backpackInventory.getItemStacks());
                         stack.setCount(0);
                     }
                     return false;
                 }
-                if (slotIndex == BackSlot.SLOT_INDEX + 1) {
+                if (slotIndex == SLOT_INDEX + 1) {
                     Item compareItem = backpackInventory.getStack(0).copy().getItem();
                     boolean continueInsert = true;
                     boolean itemRemoved = false;
                     while (!backpackInventory.isEmpty() && backpackInventory.getStack(0).isOf(compareItem) && continueInsert) {
-                        continueInsert = playerInventory.insertStack(backpackInventory.removeStackSilent(0));
+                        continueInsert = playerInventory.insertStack(-1, backpackInventory.removeStackSilent(0));
                         itemRemoved = true;
                     }
                     if (itemRemoved)
                         PlaySound.TAKE.toClient(player);
                     return false;
                 }
-                if (slotIndex < BackSlot.SLOT_INDEX) {
+                if (slotIndex < SLOT_INDEX) {
                     if (actionType == SlotActionType.PICKUP_ALL)
                         moveAll(backpackInventory, playerScreenHandler);
                     else slot.setStack(backpackInventory.insertStack(stack, stack.getCount()));
                 } else {
-                    playerInventory.insertStack(stack);
+                    playerInventory.insertStack(-1, stack);
                 }
                 return false;
             }
             else {
-                if (slotIndex == BackSlot.SLOT_INDEX + 1) {
+                if (slotIndex == SLOT_INDEX + 1) {
                     if (actionType == SlotActionType.PICKUP_ALL)
                         return false;
-                    ItemStack backpackSlotStack = playerScreenHandler.slots.get(BackSlot.SLOT_INDEX + 1).getStack();
+
                     if (button == 1) {
-                        if (!cursorStack.isOf(backpackSlotStack.getItem()) && !cursorStack.isEmpty()) {
+                        if (!cursorStack.isOf(backpackStack.getItem()) && !cursorStack.isEmpty()) {
                             backpackInventory.insertStack(cursorStack, 1);
-                            return false;
-                        }
-                        ItemStack backpackStack = backpackInventory.getStack(0);
-                        int maxStack = backpackStack.getMaxCount();
-                        if (Kind.POT.isOf(backStack) && cursorStack.isEmpty() && backpackStack.getCount() > maxStack) {
-                            int count = Math.max(1, maxStack / 2);
-                            ItemStack splitStack = backpackInventory.removeStack(0, count);
-                            playerScreenHandler.setCursorStack(splitStack);
                             return false;
                         }
                     }
@@ -291,6 +335,48 @@ public class BackSlot extends Slot implements Viewable {
                 matchingItemsTotalCount = 0;
             }
         }
+    }
+
+    public boolean pickupItemEntity(PlayerInventory instance, ItemStack stack) {
+        if (stack.isEmpty())
+            return false;
+
+        PlayerEntity player = instance.player;
+        BackSlot backSlot = BackSlot.get(player);
+        BackpackInventory backpackInventory = BackSlot.getInventory(player);
+
+        if (Kind.isStorage(backSlot.getStack()) && backpackInventory.canInsert(stack)) {
+            instance.main.forEach(stacks -> {
+                if (stacks.isOf(stack.getItem())) {
+                    int present = stacks.getCount();
+                    int inserted = stack.getCount();
+                    int count = present + inserted;
+                    int remainder = Math.max(0, count - stack.getMaxCount());
+                    count -= remainder;
+
+                    stacks.setCount(count);
+                    stack.setCount(remainder);
+                }
+            });
+
+            backpackInventory.getItemStacks().forEach(stacks -> {
+                if (stacks.isOf(stack.getItem())) {
+                    backpackInventory.insertStackSilent(stack, stack.getCount());
+                    backpackInventory.markDirty();
+                }
+            });
+        }
+
+        if (stack.isEmpty())
+            return true;
+
+        if (instance.insertStack(-1, stack))
+            return true;
+
+        if (backpackInventory.canInsert(stack))
+            return backpackInventory.insertStackSilent(stack, stack.getCount()).isEmpty();
+
+        return false;
     }
 
     /** OPENING ANIMATIONS */

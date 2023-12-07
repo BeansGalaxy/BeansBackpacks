@@ -139,7 +139,7 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
 
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
-        if (slotIndex < 0 || BackSlot.continueSlotClick(slotIndex, button, actionType, player))
+        if (BackSlot.continueSlotClick(slotIndex, button, actionType, player))
             super.onSlotClick(slotIndex, button, actionType, player);
     }
 
