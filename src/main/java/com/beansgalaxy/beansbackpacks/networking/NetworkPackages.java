@@ -2,6 +2,9 @@ package com.beansgalaxy.beansbackpacks.networking;
 
 import com.beansgalaxy.beansbackpacks.BeansBackpacks;
 import com.beansgalaxy.beansbackpacks.networking.packages.*;
+import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackSlot;
+import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.networking.server.sSprintKeyPacket;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -21,10 +24,10 @@ public class NetworkPackages {
 
     public static void registerC2SPackets() {
         BeansBackpacks.LOGGER.info("Registering C2S Packets for" + BeansBackpacks.MODID);
-        ServerPlayNetworking.registerGlobalReceiver(CALL_INVENTORY_2S, SyncBackpackInventory::callSyncBackpackInventory);
-        ServerPlayNetworking.registerGlobalReceiver(CALL_BACKSLOT_2S, SyncBackSlot::callSyncBackSlot);
+        ServerPlayNetworking.registerGlobalReceiver(CALL_INVENTORY_2S, sSyncBackpackInventory::callSyncBackpackInventory);
+        ServerPlayNetworking.registerGlobalReceiver(CALL_BACKSLOT_2S, sSyncBackSlot::callSyncBackSlot);
 
-        ServerPlayNetworking.registerGlobalReceiver(SPRINT_KEY_2S, SprintKeyPacket::receiveAtServer);
+        ServerPlayNetworking.registerGlobalReceiver(SPRINT_KEY_2S, sSprintKeyPacket::receiveAtServer);
     }
 
     public static void registerS2CPackets() {

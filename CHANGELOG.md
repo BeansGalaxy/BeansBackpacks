@@ -4,9 +4,8 @@
 - Support for other mods to wear things on the back
   - Create Back Tank
 - Config File
-  - adjust backpack sizes
   - adjustable armor values
-  - disable item deletion if too many stacks drop at once
+  - easily add items to be worn on the back and disable from chestplate
 - Custom Backpack Sounds
 - Support for Custom Modded Metals
 - Backport to 1.20.1
@@ -14,6 +13,13 @@
 
 
 <h1> CHANGELOG </h1>
+
+<h3> v1.2.0 </h3>
+
+- Added config file
+  - Option to change how many stacks are allowed to drop from a destroyed inventory before they are deleted
+  - Option to change the backpack sizes
+- Fixed bugs not allowing for server support. (Thanks EnderrKTS!)
 
 <h3> v1.1.1 </h3>
 

@@ -3,8 +3,8 @@ package com.beansgalaxy.beansbackpacks.screen;
 import com.beansgalaxy.beansbackpacks.entity.Backpack;
 import com.beansgalaxy.beansbackpacks.entity.Kind;
 import com.beansgalaxy.beansbackpacks.entity.PlaySound;
-import com.beansgalaxy.beansbackpacks.networking.packages.SyncBackSlot;
-import com.beansgalaxy.beansbackpacks.networking.packages.SyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackSlot;
+import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackpackInventory;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.advancement.AdvancementManager;
 import net.minecraft.client.MinecraftClient;
@@ -15,14 +15,11 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
@@ -96,7 +93,7 @@ public class BackSlot extends Slot implements Viewable {
 
                 public void markDirty() {
                     if (owner instanceof ServerPlayerEntity serverPlayer)
-                        SyncBackpackInventory.S2C(serverPlayer);
+                        sSyncBackpackInventory.S2C(serverPlayer);
                 }
 
                 public void onClose(PlayerEntity player) {
@@ -169,8 +166,8 @@ public class BackSlot extends Slot implements Viewable {
         if (this.getStack().isEmpty())
             clearViewers();
         if (owner instanceof ServerPlayerEntity serverPlayer) {
-            SyncBackSlot.S2C(serverPlayer);
-            SyncBackpackInventory.S2C(serverPlayer);
+            sSyncBackSlot.S2C(serverPlayer);
+            sSyncBackpackInventory.S2C(serverPlayer);
         }
     }
 

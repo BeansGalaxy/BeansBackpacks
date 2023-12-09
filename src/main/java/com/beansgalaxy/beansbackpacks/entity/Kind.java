@@ -1,5 +1,6 @@
 package com.beansgalaxy.beansbackpacks.entity;
 
+import com.beansgalaxy.beansbackpacks.BeansBackpacks;
 import com.beansgalaxy.beansbackpacks.register.ItemRegistry;
 import net.minecraft.item.ArmorMaterials;
 import net.minecraft.item.Item;
@@ -10,19 +11,19 @@ import net.minecraft.nbt.NbtCompound;
 import java.util.Objects;
 
 public enum Kind {
-    ELYTRA("elytra", 0, null),
-    POT("pot", 999, null),
-    NETHERITE("netherite", 12, ArmorMaterials.NETHERITE),
-    GOLD("gold", 9, ArmorMaterials.GOLD),
-    IRON("iron", 9, ArmorMaterials.IRON),
-    LEATHER("leather", 4, null),
-    NULL("", 999, null);
+    ELYTRA("elytra", null, 0),
+    POT("pot", null, BeansBackpacks.CONFIG.decoratedPotMaximumStacks()),
+    NETHERITE("netherite", ArmorMaterials.NETHERITE, BeansBackpacks.CONFIG.netheriteBackpackMaximumStacks()),
+    GOLD("gold", ArmorMaterials.GOLD, BeansBackpacks.CONFIG.goldBackpackMaximumStacks()),
+    IRON("iron", ArmorMaterials.IRON, BeansBackpacks.CONFIG.ironBackpackMaximumStacks()),
+    LEATHER("leather", null, BeansBackpacks.CONFIG.leatherBackpackMaximumStacks()),
+    NULL("", null, 999);
 
     private final String kind;
     private final int maxStacks;
     private final ArmorMaterials material;
 
-    Kind(String kind, int maxStacks, ArmorMaterials material) {
+    Kind(String kind, ArmorMaterials material, int maxStacks) {
         this.kind = kind;
         this.maxStacks = maxStacks;
         this.material = material;

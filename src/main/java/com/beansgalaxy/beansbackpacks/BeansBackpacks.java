@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRe
 import net.fabricmc.fabric.api.entity.event.v1.EntityElytraEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -24,20 +25,18 @@ import org.slf4j.LoggerFactory;
 public class BeansBackpacks implements ModInitializer {
 	public static final String MODID = "beansbackpacks";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
-	public static final PlaceBackpackEvent placeEvent = new PlaceBackpackEvent();
+	public static final com.beansgalaxy.beansbackpacks.BeansGalaxyConfig CONFIG = com.beansgalaxy.beansbackpacks.BeansGalaxyConfig.createAndLoad();
 
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Begun Galaxy's Backpacks Init");
+		NetworkPackages.registerC2SPackets();
+
 		ItemRegistry.registerItems();
 		ScreenHandlersRegistry.registerScreenHandlers();
-		NetworkPackages.registerC2SPackets();
-		UseBlockCallback.EVENT.register(placeEvent);
-		//ServerTickEvents.END_WORLD_TICK.register(placeEvent);
+
+		UseBlockCallback.EVENT.register(new PlaceBackpackEvent());
 		EntityElytraEvents.CUSTOM.register(new EnableElytraEvent());
-		ClientEntityEvents.ENTITY_LOAD.register(new JoinClientEvent());
-		LivingEntityFeatureRenderEvents.ALLOW_CAPE_RENDER.register(new DisableCapeEvent());
-		LivingEntityFeatureRendererRegistrationCallback.EVENT.register(new FeatureRendererEvent());
 		LOGGER.info("Finished Galaxy's Backpacks Init");
 	}
 

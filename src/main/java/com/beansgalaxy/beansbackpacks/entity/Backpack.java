@@ -139,7 +139,7 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
             player.dropStack(backpackStack.copy(), 0.5f);
             if (kind.isOf(Kind.POT)) {
                 int iteration = 0;
-                int maxIterations = 72;
+                int maxIterations = BeansBackpacks.CONFIG.limitDroppedStacks();
                 while (!itemStacks.isEmpty() && iteration < maxIterations) {
                     ItemStack stack = itemStacks.remove(iteration);
                     if (stack.getMaxCount() == 64) {

@@ -4,15 +4,17 @@ import com.beansgalaxy.beansbackpacks.client.entity.BackpackEntityModel;
 import com.beansgalaxy.beansbackpacks.client.entity.BackpackEntityRenderer;
 import com.beansgalaxy.beansbackpacks.client.player.BackpackPlayerModel;
 import com.beansgalaxy.beansbackpacks.client.player.PlayerPotModel;
+import com.beansgalaxy.beansbackpacks.events.DisableCapeEvent;
+import com.beansgalaxy.beansbackpacks.events.FeatureRendererEvent;
+import com.beansgalaxy.beansbackpacks.events.JoinClientEvent;
 import com.beansgalaxy.beansbackpacks.item.BackpackItem;
 import com.beansgalaxy.beansbackpacks.networking.NetworkPackages;
 import com.beansgalaxy.beansbackpacks.register.ItemRegistry;
 import com.beansgalaxy.beansbackpacks.register.ScreenHandlersRegistry;
 import com.beansgalaxy.beansbackpacks.screen.BackpackScreen;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.util.Identifier;
@@ -21,7 +23,11 @@ public class Client implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+
         NetworkPackages.registerS2CPackets();
+        ClientEntityEvents.ENTITY_LOAD.register(new JoinClientEvent());
+        LivingEntityFeatureRenderEvents.ALLOW_CAPE_RENDER.register(new DisableCapeEvent());
+        LivingEntityFeatureRendererRegistrationCallback.EVENT.register(new FeatureRendererEvent());
 
         ColorProviderRegistry.ITEM.register((stack, layer) ->
                 (layer != 1 ? ((BackpackItem) stack.getItem()).getColor(stack) : 16777215), ItemRegistry.LEATHER_BACKPACK.asItem());

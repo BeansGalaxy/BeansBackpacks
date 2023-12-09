@@ -1,6 +1,6 @@
 package com.beansgalaxy.beansbackpacks.screen;
 
-import com.beansgalaxy.beansbackpacks.networking.packages.SyncBackpackViewersPacket;
+import com.beansgalaxy.beansbackpacks.networking.server.sSyncViewers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
@@ -45,7 +45,7 @@ public interface Viewable {
             byte newViewers = (byte) Math.min(playersViewing.size(), Byte.MAX_VALUE);
             setViewers(newViewers);
             if (!getOwner().getWorld().isClient)
-                  SyncBackpackViewersPacket.S2C(getOwner(), newViewers);
+                  sSyncViewers.S2C(getOwner(), newViewers);
       }
 
       default boolean isOpen() {

@@ -22,7 +22,7 @@
 			"com.beansgalaxy.beansbackpacks.Client"
 		],
 		"fabric-datagen": [
-          "com.beansgalaxy.beansbackpacks.DataGenerator"
+
 		]
 	},
 	"mixins": [

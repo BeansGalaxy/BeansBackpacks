@@ -2,7 +2,7 @@ package com.beansgalaxy.beansbackpacks.mixin;
 
 import com.beansgalaxy.beansbackpacks.entity.Kind;
 import com.beansgalaxy.beansbackpacks.entity.PlaySound;
-import com.beansgalaxy.beansbackpacks.networking.packages.SyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackpackInventory;
 import com.beansgalaxy.beansbackpacks.screen.BackSlot;
 import com.beansgalaxy.beansbackpacks.screen.BackpackInventory;
 import com.mojang.datafixers.util.Pair;
@@ -63,7 +63,7 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
 
             public void markDirty() {
                 if (player instanceof ServerPlayerEntity serverPlayer)
-                    SyncBackpackInventory.S2C(serverPlayer);
+                    sSyncBackpackInventory.S2C(serverPlayer);
             }
 
         };
