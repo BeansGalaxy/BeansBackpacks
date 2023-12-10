@@ -1,10 +1,12 @@
 package com.beansgalaxy.beansbackpacks.networking;
 
 import com.beansgalaxy.beansbackpacks.BeansBackpacks;
-import com.beansgalaxy.beansbackpacks.networking.packages.*;
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackSlot;
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackpackInventory;
-import com.beansgalaxy.beansbackpacks.networking.server.sSprintKeyPacket;
+import com.beansgalaxy.beansbackpacks.client.networking.SyncBackSlot;
+import com.beansgalaxy.beansbackpacks.client.networking.SyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.client.networking.SyncBackpackViewersPacket;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncBackSlot;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSprintKeyPacket;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -43,7 +45,7 @@ public class NetworkPackages {
             NbtCompound nbt = NbtHelper.fromNbtProviderString(string);
             return nbt;
         } catch (CommandSyntaxException e) {
-            throw new RuntimeException(BeansBackpacks.MODID + ": Failed to sync BackpackInventory with client");
+            throw new RuntimeException(BeansBackpacks.MODID + ": Failed to sync BackpackInventory with networking");
         }
     }
 

@@ -1,6 +1,6 @@
 package com.beansgalaxy.beansbackpacks.mixin;
 
-import com.beansgalaxy.beansbackpacks.networking.packages.SprintKeyPacket;
+import com.beansgalaxy.beansbackpacks.client.networking.SprintKeyPacket;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;

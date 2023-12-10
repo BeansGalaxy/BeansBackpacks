@@ -11,7 +11,7 @@ import com.beansgalaxy.beansbackpacks.item.BackpackItem;
 import com.beansgalaxy.beansbackpacks.networking.NetworkPackages;
 import com.beansgalaxy.beansbackpacks.register.ItemRegistry;
 import com.beansgalaxy.beansbackpacks.register.ScreenHandlersRegistry;
-import com.beansgalaxy.beansbackpacks.screen.BackpackScreen;
+import com.beansgalaxy.beansbackpacks.client.screen.BackpackScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.*;

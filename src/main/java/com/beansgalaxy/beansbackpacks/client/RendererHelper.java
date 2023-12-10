@@ -2,7 +2,7 @@ package com.beansgalaxy.beansbackpacks.client;
 
 import com.beansgalaxy.beansbackpacks.BeansBackpacks;
 import com.beansgalaxy.beansbackpacks.entity.Kind;
-import com.beansgalaxy.beansbackpacks.screen.BackpackScreen;
+import com.beansgalaxy.beansbackpacks.client.screen.BackpackScreen;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;

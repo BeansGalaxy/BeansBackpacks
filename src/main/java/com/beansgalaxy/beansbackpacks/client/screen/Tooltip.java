@@ -1,4 +1,4 @@
-package com.beansgalaxy.beansbackpacks.item;
+package com.beansgalaxy.beansbackpacks.client.screen;
 
 import com.beansgalaxy.beansbackpacks.entity.Kind;
 import com.beansgalaxy.beansbackpacks.screen.BackSlot;

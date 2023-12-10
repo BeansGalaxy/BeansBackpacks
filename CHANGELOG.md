@@ -14,6 +14,10 @@
 
 <h1> CHANGELOG </h1>
 
+<h3> v1.2.1 </h3>
+
+- Connecting to a server straight up wasn't working due to a skill issue.
+
 <h3> v1.2.0 </h3>
 
 - Added config file

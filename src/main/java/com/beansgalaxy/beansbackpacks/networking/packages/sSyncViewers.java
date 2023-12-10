@@ -1,4 +1,4 @@
-package com.beansgalaxy.beansbackpacks.networking.server;
+package com.beansgalaxy.beansbackpacks.networking.packages;
 
 import com.beansgalaxy.beansbackpacks.networking.NetworkPackages;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;

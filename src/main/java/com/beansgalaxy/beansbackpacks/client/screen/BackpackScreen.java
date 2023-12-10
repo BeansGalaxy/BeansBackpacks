@@ -1,7 +1,9 @@
-package com.beansgalaxy.beansbackpacks.screen;
+package com.beansgalaxy.beansbackpacks.client.screen;
 
 import com.beansgalaxy.beansbackpacks.BeansBackpacks;
 import com.beansgalaxy.beansbackpacks.entity.Backpack;
+import com.beansgalaxy.beansbackpacks.screen.BackpackScreenHandler;
+import com.beansgalaxy.beansbackpacks.screen.Viewable;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;

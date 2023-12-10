@@ -1,6 +1,6 @@
 package com.beansgalaxy.beansbackpacks.screen;
 
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncViewers;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncViewers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.collection.DefaultedList;

@@ -1,4 +1,4 @@
-package com.beansgalaxy.beansbackpacks.networking.server;
+package com.beansgalaxy.beansbackpacks.networking.packages;
 
 import com.beansgalaxy.beansbackpacks.networking.NetworkPackages;
 import com.beansgalaxy.beansbackpacks.screen.BackSlot;

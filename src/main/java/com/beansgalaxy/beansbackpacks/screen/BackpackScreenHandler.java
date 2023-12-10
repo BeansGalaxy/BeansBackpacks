@@ -21,11 +21,11 @@ public class BackpackScreenHandler extends ScreenHandler {
     private static final Identifier INPUT = new Identifier("sprites/empty_slot_input_large");
     private static int BACKPACK_SLOT_INDEX;
     public final Backpack entity;
-    protected final Backpack mirror;
-    protected final PlayerEntity viewer;
-    protected final Entity owner;
-    protected final BlockPos ownerPos;
-    protected final float ownerYaw;
+    public final Backpack mirror;
+    public final PlayerEntity viewer;
+    public final Entity owner;
+    public final BlockPos ownerPos;
+    public final float ownerYaw;
     public int invOffset = 108;
 
     public BackpackScreenHandler(int syncId, PlayerInventory inventory, PacketByteBuf buf) {
@@ -37,11 +37,13 @@ public class BackpackScreenHandler extends ScreenHandler {
         this.owner = owner;
         this.ownerPos = owner.getBlockPos();
         this.ownerYaw = owner.getBodyYaw();
-        if (entity instanceof BackpackEntity bEntity) {
+        if (owner instanceof BackpackEntity bEntity) {
             this.entity = bEntity;
             this.mirror = bEntity.createMirror();
         }
         else {
+            if (entity == null && owner instanceof PlayerEntity ownerPlayer)
+                entity = BackSlot.getBackpack(playerInventory.player, ownerPlayer);
             this.entity = (Backpack) entity;
             this.mirror = this.entity;
         }

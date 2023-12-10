@@ -1,18 +1,15 @@
 package com.beansgalaxy.beansbackpacks;
 
 import com.beansgalaxy.beansbackpacks.entity.BackpackEntity;
-import com.beansgalaxy.beansbackpacks.events.*;
+import com.beansgalaxy.beansbackpacks.events.EnableElytraEvent;
+import com.beansgalaxy.beansbackpacks.events.PlaceBackpackEvent;
 import com.beansgalaxy.beansbackpacks.networking.NetworkPackages;
 import com.beansgalaxy.beansbackpacks.register.ItemRegistry;
 import com.beansgalaxy.beansbackpacks.register.ScreenHandlersRegistry;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRenderEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntityElytraEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;

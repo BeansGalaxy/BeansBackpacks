@@ -1,8 +1,9 @@
 package com.beansgalaxy.beansbackpacks.mixin;
 
+import com.beansgalaxy.beansbackpacks.client.ClientPlaySound;
 import com.beansgalaxy.beansbackpacks.entity.Kind;
 import com.beansgalaxy.beansbackpacks.entity.PlaySound;
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncBackpackInventory;
 import com.beansgalaxy.beansbackpacks.screen.BackSlot;
 import com.beansgalaxy.beansbackpacks.screen.BackpackInventory;
 import com.mojang.datafixers.util.Pair;
@@ -58,7 +59,8 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
             }
 
             public void playSound(PlaySound sound) {
-                sound.toClient(player);
+                if (player.getWorld().isClient)
+                    sound.toClient(player);
             }
 
             public void markDirty() {

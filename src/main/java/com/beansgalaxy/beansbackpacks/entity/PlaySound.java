@@ -1,9 +1,7 @@
 package com.beansgalaxy.beansbackpacks.entity;
 
 import com.beansgalaxy.beansbackpacks.BeansBackpacks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
+import com.beansgalaxy.beansbackpacks.client.ClientPlaySound;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.Registries;
@@ -47,12 +45,8 @@ public enum PlaySound {
     }
 
     public void toClient(PlayerEntity player) {
-        if (!player.getWorld().isClient) {
-            MinecraftClient.getInstance().getSoundManager().play(
-                new PositionedSoundInstance(this.soundEvent.getId(), SoundCategory.PLAYERS, 0.7f, player.getWorld().random.nextFloat() * 0.1f + 0.8f,
-                            SoundInstance.createRandom(), false, 0, SoundInstance.AttenuationType.LINEAR, 0.0, 0.0, 0.0, true)
-                );
-        }
+        if (player.getWorld().isClient)
+            ClientPlaySound.toClient(player, this.soundEvent);
     }
 
     public static void registerAll() {

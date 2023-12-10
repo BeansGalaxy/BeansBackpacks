@@ -1,13 +1,12 @@
 package com.beansgalaxy.beansbackpacks.screen;
 
+import com.beansgalaxy.beansbackpacks.client.ClientPlaySound;
 import com.beansgalaxy.beansbackpacks.entity.Backpack;
 import com.beansgalaxy.beansbackpacks.entity.Kind;
 import com.beansgalaxy.beansbackpacks.entity.PlaySound;
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackSlot;
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackpackInventory;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncBackSlot;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncBackpackInventory;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.advancement.AdvancementManager;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,6 +23,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -34,9 +34,6 @@ public class BackSlot extends Slot implements Viewable {
     private static final Identifier EMPTY_SLOT_SMITHING_TEMPLATE_ARMOR_TRIM_TEXTURE = new Identifier("item/empty_slot_smithing_template_armor_trim");
     private static final Identifier EMPTY_SLOT_SMITHING_TEMPLATE_NETHERITE_UPGRADE_TEXTURE = new Identifier("item/empty_slot_smithing_template_netherite_upgrade");
     public static final List<Identifier> EMPTY_SLOT_TEXTURES = List.of(EMPTY_SLOT_SMITHING_TEMPLATE_ARMOR_TRIM_TEXTURE, EMPTY_SLOT_SMITHING_TEMPLATE_NETHERITE_UPGRADE_TEXTURE);
-
-    private static final Identifier SLOT_BACKPACK = new Identifier("sprites/empty_slot_backpack");
-    private static final Identifier SLOT_ELYTRA = new Identifier("sprites/empty_slot_elytra");
 
     public static final Identifier BACKPACK_ATLAS = new Identifier("textures/atlas/blocks.png");
     public static int SLOT_INDEX;
@@ -86,41 +83,16 @@ public class BackSlot extends Slot implements Viewable {
         boolean looking = e > 1.0 - radius * maxRadius && viewer.canSee(owner);
 
         if (yawMatches && looking) { // INTERACT WITH BACKPACK CODE GOES HERE
-            Backpack backpack = new Backpack(viewer.getWorld()) {
-                public Entity getOwner() {
-                    return owner;
-                }
-
-                public void markDirty() {
-                    if (owner instanceof ServerPlayerEntity serverPlayer)
-                        sSyncBackpackInventory.S2C(serverPlayer);
-                }
-
-                public void onClose(PlayerEntity player) {
-                    BackSlot backSlot = get(owner);
-                    backSlot.removeViewer(viewer);
-                    if (backSlot.getViewers() < 1)
-                        PlaySound.CLOSE.at(owner);
-                }
-
-                public void updateViewers() {
-                }
-
-                public void playSound(PlaySound sound) {
-                    sound.at(owner, 0.3f);
-                }
-            };
-            DefaultedList<ItemStack> itemStacks = getInventory(owner).getItemStacks();
-            backpack.initDisplay(backpackStack);
-            backpack.itemStacks = itemStacks;
+            Backpack backpack = getBackpack(viewer, owner);
             if (viewer.getWorld() instanceof ServerWorld serverWorld)
                 serverWorld.tryLoadEntity(backpack);
-            viewer.openHandledScreen(backpack);
 
             // ENABLE THIS LINE OF CODE BELOW TO SHOW WHEN THE BACKPACK IS INTERACTED WITH
             //owner.getWorld().addParticle(ParticleTypes.FIREWORK, newX, viewer.getEyeY() + 0.1, newZ, 0, 0, 0);
 
             PlaySound.OPEN.at(owner);
+            if (!viewer.getWorld().isClient())
+                viewer.openHandledScreen(backpack);
 
             if (!viewer.getWorld().isClient() && viewer.currentScreenHandler != viewer.playerScreenHandler) {
                     backSlot.addViewer(viewer);
@@ -132,13 +104,42 @@ public class BackSlot extends Slot implements Viewable {
         return ActionResult.PASS;
     }
 
-    public static List<Identifier> getTextures() {
-        AdvancementManager manager = MinecraftClient.getInstance().getNetworkHandler().getAdvancementHandler().getManager();
-        boolean hasEndGoal = manager.get(Identifier.tryParse("end/root")) != null;
-        if (hasEndGoal)
-            return List.of(SLOT_ELYTRA, SLOT_BACKPACK);
+    @NotNull
+    public static Backpack getBackpack(PlayerEntity viewer, PlayerEntity owner) {
+        Backpack backpack = new Backpack(viewer.getWorld()) {
 
-        return List.of(SLOT_BACKPACK);
+            public Entity getOwner() {
+                return owner;
+            }
+
+            public void markDirty() {
+                if (owner instanceof ServerPlayerEntity serverPlayer)
+                    sSyncBackpackInventory.S2C(serverPlayer);
+            }
+
+            public void onClose(PlayerEntity player) {
+                BackSlot backSlot = get(owner);
+                backSlot.removeViewer(viewer);
+                if (backSlot.getViewers() < 1)
+                    PlaySound.CLOSE.at(owner);
+            }
+
+            public void tick() {
+            }
+
+            public void updateViewers() {
+            }
+
+            public void playSound(PlaySound sound) {
+                sound.at(owner, 0.3f);
+            }
+        };
+        ItemStack backpackStack = BackSlot.get(owner).getStack();
+
+        DefaultedList<ItemStack> itemStacks = getInventory(owner).getItemStacks();
+        backpack.initDisplay(backpackStack);
+        backpack.itemStacks = itemStacks;
+        return backpack;
     }
 
     public int getMaxItemCount() {

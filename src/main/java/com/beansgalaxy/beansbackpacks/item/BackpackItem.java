@@ -1,9 +1,10 @@
 package com.beansgalaxy.beansbackpacks.item;
 
+import com.beansgalaxy.beansbackpacks.client.screen.Tooltip;
 import com.beansgalaxy.beansbackpacks.entity.BackpackEntity;
 import com.beansgalaxy.beansbackpacks.entity.Kind;
 import com.beansgalaxy.beansbackpacks.entity.PlaySound;
-import com.beansgalaxy.beansbackpacks.networking.server.sSyncBackSlot;
+import com.beansgalaxy.beansbackpacks.networking.packages.sSyncBackSlot;
 import com.beansgalaxy.beansbackpacks.screen.BackSlot;
 import net.minecraft.client.item.TooltipData;
 import net.minecraft.entity.player.PlayerEntity;

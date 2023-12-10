@@ -1,4 +1,4 @@
-package com.beansgalaxy.beansbackpacks.networking.packages;
+package com.beansgalaxy.beansbackpacks.client.networking;
 
 import com.beansgalaxy.beansbackpacks.screen.BackSlot;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
