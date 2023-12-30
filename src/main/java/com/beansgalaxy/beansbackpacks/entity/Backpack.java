@@ -16,6 +16,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
@@ -139,7 +140,7 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
             player.dropStack(backpackStack.copy(), 0.5f);
             if (Kind.POT.isOf(kind)) {
                 int iteration = 0;
-                int maxIterations = BeansBackpacks.CONFIG.limitDroppedStacks();
+                int maxIterations = 72;
                 while (!itemStacks.isEmpty() && iteration < maxIterations) {
                     ItemStack stack = itemStacks.remove(iteration);
                     if (stack.getMaxCount() == 64) {
@@ -166,7 +167,6 @@ public class Backpack extends Entity implements ExtendedScreenHandlerFactory, Ba
                     itemStacks, backpackStack, player.getYaw());
 
         PlaySound.DROP.at(player);
-
     }
 
     @Override

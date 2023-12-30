@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 public class BeansBackpacks implements ModInitializer {
 	public static final String MODID = "beansbackpacks";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
-	public static final com.beansgalaxy.beansbackpacks.BeansGalaxyConfig CONFIG = com.beansgalaxy.beansbackpacks.BeansGalaxyConfig.createAndLoad();
 
 	@Override
 	public void onInitialize() {

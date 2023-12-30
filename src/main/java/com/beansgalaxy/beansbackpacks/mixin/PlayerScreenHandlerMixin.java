@@ -98,9 +98,10 @@ public abstract class PlayerScreenHandlerMixin extends AbstractRecipeScreenHandl
         return new Slot(par1.inventory, index, par1.x, par1.y) {
 
             @Override
-            public void setStack(ItemStack stack, ItemStack previousStack) {
+            public void setStack(ItemStack stack) {
+                ItemStack previousStack = this.getStack();
                 owner.onEquipStack(equipmentSlot, previousStack, stack);
-                super.setStack(stack, previousStack);
+                super.setStack(stack);
             }
 
             @Override

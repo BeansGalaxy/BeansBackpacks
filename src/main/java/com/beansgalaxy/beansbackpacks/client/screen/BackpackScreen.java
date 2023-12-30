@@ -54,7 +54,7 @@ public class BackpackScreen extends HandledScreen<BackpackScreenHandler> {
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         if (handler.entity.isRemoved()) this.close();
-        renderBackground(ctx, mouseX, mouseY, delta);
+        renderBackground(ctx);
         super.render(ctx, mouseX, mouseY, delta);
         drawMouseoverTooltip(ctx, mouseX, mouseY);
     }

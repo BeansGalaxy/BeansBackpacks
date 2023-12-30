@@ -12,11 +12,11 @@ import java.util.Objects;
 
 public enum Kind {
     ELYTRA("elytra", null, 0),
-    POT("pot", null, BeansBackpacks.CONFIG.decoratedPotMaximumStacks()),
-    NETHERITE("netherite", ArmorMaterials.NETHERITE, BeansBackpacks.CONFIG.netheriteBackpackMaximumStacks()),
-    GOLD("gold", ArmorMaterials.GOLD, BeansBackpacks.CONFIG.goldBackpackMaximumStacks()),
-    IRON("iron", ArmorMaterials.IRON, BeansBackpacks.CONFIG.ironBackpackMaximumStacks()),
-    LEATHER("leather", null, BeansBackpacks.CONFIG.leatherBackpackMaximumStacks()),
+    POT("pot", null, 999),
+    NETHERITE("netherite", ArmorMaterials.NETHERITE, 12),
+    GOLD("gold", ArmorMaterials.GOLD, 9),
+    IRON("iron", ArmorMaterials.IRON, 9),
+    LEATHER("leather", null, 4),
     NULL("", null, 999);
 
     private final String kind;

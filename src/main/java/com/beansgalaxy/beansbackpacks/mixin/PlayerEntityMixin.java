@@ -23,6 +23,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         super(entityType, world);
     }
 
+    @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
         return BackSlot.openPlayerBackpackMenu(player, (PlayerEntity) (Object) this);
     }

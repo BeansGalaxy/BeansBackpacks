@@ -38,6 +38,10 @@ public class sSyncBackSlot {
       public static void callSyncBackSlot(MinecraftServer server, ServerPlayerEntity serverPlayer, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
           UUID uuid = buf.readUuid();
           PlayerEntity otherPlayer = serverPlayer.getWorld().getPlayerByUuid(uuid);
+
+          if (otherPlayer == null)
+              return;
+
           ItemStack backStack = BackSlot.get(otherPlayer).getStack();
 
           PacketByteBuf bufSlot = PacketByteBufs.create();

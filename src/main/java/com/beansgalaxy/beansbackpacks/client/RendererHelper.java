@@ -56,10 +56,10 @@ public interface RendererHelper {
     }
 
     static void renderTrim(EntityModel<Entity> model, MatrixStack pose, int light, VertexConsumerProvider mbs, Sprite sprite) {
-        VertexConsumer vc = sprite.getTextureSpecificVertexConsumer(mbs.getBuffer(TexturedRenderLayers.getArmorTrims(false)));
+        VertexConsumer vc = sprite.getTextureSpecificVertexConsumer(mbs.getBuffer(TexturedRenderLayers.getArmorTrims()));
         if (inBackpackScreen()) {
             for (int j = 1; j < 4; j++) {
-                VertexConsumer vc1 = sprite.getTextureSpecificVertexConsumer(mbs.getBuffer(TexturedRenderLayers.getArmorTrims(false)));
+                VertexConsumer vc1 = sprite.getTextureSpecificVertexConsumer(mbs.getBuffer(TexturedRenderLayers.getArmorTrims()));
                 float scale = (0.0015F * j);
                 pose.scale(1 + scale, 1 + scale / 2, 1 + scale);
                 pose.translate(0, -scale / 1.1, 0);
