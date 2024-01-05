@@ -6,13 +6,9 @@ import com.beansgalaxy.beansbackpacks.screen.BackpackInventory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.collection.DefaultedList;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -94,10 +90,11 @@ public abstract class PlayerInventoryMixin implements Inventory {
         }
     }
 
-    @Redirect(method = "insertStack(Lnet/minecraft/item/ItemStack;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;insertStack(ILnet/minecraft/item/ItemStack;)Z"))
-    public boolean insertStack(PlayerInventory instance, int slot, ItemStack stack) {
-        return BackSlot.get(instance.player).pickupItemEntity(instance, stack);
+    @Inject(method = "insertStack(ILnet/minecraft/item/ItemStack;)Z", at = @At("HEAD"), cancellable = true)
+    public void insertStack(int slot, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+        PlayerInventory instance = (PlayerInventory) ((Object) this);
+        if (slot == -1 && BackSlot.get(instance.player).pickupItemEntity(instance, stack))
+            cir.setReturnValue(true);
     }
-
 }
 

@@ -3,11 +3,13 @@ package com.beansgalaxy.beansbackpacks;
 import com.beansgalaxy.beansbackpacks.entity.BackpackEntity;
 import com.beansgalaxy.beansbackpacks.events.EnableElytraEvent;
 import com.beansgalaxy.beansbackpacks.events.PlaceBackpackEvent;
+import com.beansgalaxy.beansbackpacks.events.PlayerRespawnEvent;
 import com.beansgalaxy.beansbackpacks.networking.NetworkPackages;
 import com.beansgalaxy.beansbackpacks.register.ItemRegistry;
 import com.beansgalaxy.beansbackpacks.register.ScreenHandlersRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.EntityElytraEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.Entity;
@@ -31,6 +33,7 @@ public class BeansBackpacks implements ModInitializer {
 		ItemRegistry.registerItems();
 		ScreenHandlersRegistry.registerScreenHandlers();
 
+		ServerPlayerEvents.AFTER_RESPAWN.register(new PlayerRespawnEvent());
 		UseBlockCallback.EVENT.register(new PlaceBackpackEvent());
 		EntityElytraEvents.CUSTOM.register(new EnableElytraEvent());
 		LOGGER.info("Finished Galaxy's Backpacks Init");
