@@ -1,0 +1,21 @@
+{
+  "key.beansbackpacks.action": "放置/装备背包",
+  "key.beansbackpacks.description": "默认时跟疾跑键一致",
+  "tooltip.beansbackpacks.empty_title_1": "§7按住%d§7查看详细信息",
+  "tooltip.beansbackpacks.empty_title_2": "",
+  "tooltip.beansbackpacks.empty_1": "§7按住%d§7移动物品",
+  "tooltip.beansbackpacks.empty_2": "§7快速装填背包",
+  "tooltip.beansbackpacks.empty_3": "按住%d §7+ %d §7装备或",
+  "tooltip.beansbackpacks.empty_4": "§7放置背包",
+  "tooltip.beansbackpacks.empty_5": "",
+  "itemGroup.beansbackpacks": "背包",
+
+  "sounds.beansbackpacks.place": "背包：被放置",
+  "sounds.beansbackpacks.equip": "背包：被装备",
+  "sounds.beansbackpacks.hit": "背包：损坏中",
+  "sounds.beansbackpacks.break": "背包：被破坏",
+  "sounds.beansbackpacks.insert": "背包：装填物品",
+  "sounds.beansbackpacks.take": "背包：取出物品",
+  "sounds.beansbackpacks.open": "打开背包",
+  "sounds.beansbackpacks.close": "关闭背包"
+}
