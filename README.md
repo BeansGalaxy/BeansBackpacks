@@ -1,3 +1,9 @@
+<h1 align="center">THIS IS AN OUTDATED VERSION </h1>
+<p align= "justify">The up-to-date page is https://github.com/BeansGalaxy/Beans-Backpacks-2. This page is only for archival purpouses and shouldn't be used for issues or feedback below is the orignal description for the mod which you can look back at to see where BeansBackpacks started from. </p>
+
+<br>
+
+<br>
 
 <h1 align="center">Bean's Backpacks </h1>
 
